@@ -1,9 +1,10 @@
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
-import { player } from "./player.mjs";
 
 export const game = {
     status: GameStatus.NOT_STARTED,
-    players : [player],
+    players: [],
     time: 0,
-    words : [],
+    words: [],
 };
+
+console.log("Initial game status:", game.status);  // Debugging line

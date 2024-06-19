@@ -3,17 +3,18 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/app.mjs",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/app.mjs"
+    "start": "node src/app.mjs",
+    "dev": "nodemon src/app.mjs",
+    "test": "mocha"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "nodemon": "^3.1.3"
   }
 }

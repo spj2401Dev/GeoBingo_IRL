@@ -2,6 +2,6 @@ import { word } from "./word.mjs"
 
 export const player = {
     name: '',
-    words: [word],
+    words: [],
     isAdmin: false,
 }

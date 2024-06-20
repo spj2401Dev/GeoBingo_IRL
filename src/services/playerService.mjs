@@ -36,6 +36,16 @@ export function modifyPlayer(player) {
   });
 }
 
+export function getWordsFromPlayer(player) {
+  players.forEach((p) => {
+    if (p.name == player) {
+      return p.words;
+    } else {
+      return null;
+    }
+  });
+}
+
 export function CheckIfPlayerExists(player) {
   players.forEach((p) => {
     if (p.name == player.name) {

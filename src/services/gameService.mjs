@@ -1,11 +1,21 @@
 import { game } from "../models/game.mjs";
+import { wordlist } from "../utility/wordsList.mjs";
+
+const gameName = generateGameName();
 
 export function changeGameStatus(status) {
     game.status = status;
-    console.log("Getting game status:", game.status);  // Debugging line
 }
 
 export function getGameStatus() {
-    console.log("Getting game status:", game.status);  // Debugging line
     return game.status;
+}
+
+function generateGameName() {
+    const randomWords = wordlist.sort(() => Math.random() - 0.5);
+    return randomWords.slice(0, 3).join(" ");
+}
+
+export function getGameName() {
+    return gameName;
 }

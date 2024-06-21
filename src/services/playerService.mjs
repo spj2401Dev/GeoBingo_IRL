@@ -22,6 +22,7 @@ export async function addPlayer(playerName) {
   if (players.length === 0) {
     player.isAdmin = true;
   } 
+  console.log(player);
 
   players.push(player);
 }
@@ -36,6 +37,15 @@ export function modifyPlayer(player) {
   });
 }
 
+export function getWordsFromPlayer(playerName) {
+  const foundPlayer = players.find((p) => p.name === playerName);
+
+  if (foundPlayer) {
+    return foundPlayer.words;
+  } else {
+    return null;
+  }
+}
 export function CheckIfPlayerExists(player) {
   players.forEach((p) => {
     if (p.name == player.name) {
@@ -47,14 +57,16 @@ export function CheckIfPlayerExists(player) {
 }
 
 export function AddImageToPlayer(image, player, word) {
-  players.forEach((p) => {
-    if (p.name == player.name) {
-      p.words.forEach((w) => {
-        if (w.label == word) {
-          w.photo = image;
-          w.completed = true;
-        }
-      });
+  var targetPlayer = players.find(p => p.name === player);
+  if (targetPlayer) {
+    var targetWord = targetPlayer.words.find(w => w.Label === word);
+    if (targetWord) {
+      targetWord.photo = image;
+      targetWord.completed = true;
     }
-  });
+  }
+
+  console.log(targetPlayer);
+  console.log(targetWord);
+  return;
 }

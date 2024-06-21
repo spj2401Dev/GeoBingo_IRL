@@ -1,6 +1,7 @@
 import { wordlist } from "../utility/wordsList.mjs";
 import { changeGameStatus } from "../services/gameService.mjs";
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
+import { getWordsFromPlayer } from "../services/playerService.mjs";
 
 var wordsPerPlayer = 9;
 var userWordList = [];
@@ -32,4 +33,17 @@ export const setWords = async (req, res) => {
 export const getWords = async (numberOfWords = wordsPerPlayer, wordList = userWordList) => {
   const randomWords = wordList.sort(() => Math.random() - 0.5);
   return randomWords.slice(0, numberOfWords);
+};
+
+export const getWordsForPlayer = async (req, res) => {
+  const playerName = req.params.player;
+  const words = getWordsFromPlayer(playerName);
+
+  if (words === null) {
+    return res.status(400).json({
+      message: "Player not found",
+    });
+  }
+
+  return res.status(200).json(words);
 };

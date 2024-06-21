@@ -2,7 +2,6 @@ import { wordlist } from "../utility/wordsList.mjs";
 import { changeGameStatus } from "../services/gameService.mjs";
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
 import { getWordsFromPlayer } from "../services/playerService.mjs";
-import { word } from "../models/word.mjs";
 
 var wordsPerPlayer = 9;
 var userWordList = [];
@@ -37,20 +36,14 @@ export const getWords = async (numberOfWords = wordsPerPlayer, wordList = userWo
 };
 
 export const getWordsForPlayer = async (req, res) => {
-  const player = req.params.player;
+  const playerName = req.params.player;
+  const words = getWordsFromPlayer(playerName);
 
-  const words = Array.isArray(await getWordsFromPlayer(player)) ? await getWordsFromPlayer(player) : [await getWordsFromPlayer(player)];
-console.log(words);
-
-
-  if (words == null) {
+  if (words === null) {
     return res.status(400).json({
       message: "Player not found",
     });
   }
 
-  // return as word model, with label, completed and the photo
-  return res.status(200).json({
-    message: words,
-  });
+  return res.status(200).json(words);
 };

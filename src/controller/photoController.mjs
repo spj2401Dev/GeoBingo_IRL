@@ -1,75 +1,82 @@
-import { CheckIfPlayerExists, AddImageToPlayer } from "../services/playerService.mjs";
+import {
+  CheckIfPlayerExists,
+  AddImageToPlayer,
+} from "../services/playerService.mjs";
+import path from "path";
+import fs from "fs";
+
+const uploadDir = "data/photos/";
 
 export const PostPhoto = async (req, res) => {
-    const file = req.files.file;
-    const playername = req.body.playername;
+  try {
     const word = req.body.word;
 
-    if (!file.mimetype.startsWith('image')) {
-        return res.status(400).json({
-            message: 'Please upload an image file'
-        });
+    console.log(req.body);
+
+    if (!req.files || Object.keys(req.files).length === 0) {
+      res.status(400).send("No files were uploaded.");
+      return;
     }
 
-    if (!CheckIfPlayerExists(playername)) {
-        return res.status(400).json({
-            message: 'Player does not exist'
-        });
-    }
+    let uploadedFile = req.files.file;
+    let filename = word + Date.now() + ".jpg";
 
-    try {
-        const fileName = `${word}_${Date.now()}.jpg`;
-        const filePath = path.join(__dirname, '../data/photos', fileName);
-        await file.mv(filePath);
-    } catch {
-        return res.status(500).json({
-            message: 'Failed to upload image'
-        });
-    }
+    const savePath = path.join(uploadDir, filename);
 
-    AddImageToPlayer(fileName, playername, word);
-
-    return res.status(200).json({
-        message: 'Image uploaded successfully'
+    uploadedFile.mv(savePath, (err) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send(err);
+        return;
+      }
     });
+
+    const playername = req.body.playername;
+    AddImageToPlayer(savePath, playername, word);
+
+    console.log("File uploaded! " + filename);
+    res.send({ message: "File uploaded!", filename: filename });
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export const GetPhoto = async (req, res) => {
-    const playername = req.body.playername;
-    const word = req.body.word;
+  const playername = req.body.playername;
+  const word = req.body.word;
 
-    if (!CheckIfPlayerExists(playername)) {
-        return res.status(400).json({
-            message: 'Player does not exist'
-        });
-    }
+  if (!CheckIfPlayerExists(playername)) {
+    return res.status(400).json({
+      message: "Player does not exist",
+    });
+  }
 
-    let photo = '';
+  let photo = "";
 
-    players.forEach((p) => {
-        if (p.name == playername) {
-            p.words.forEach((w) => {
-                if (w.label == word) {
-                    photo = w.photo;
-                }
-            });
+  players.forEach((p) => {
+    if (p.name == playername) {
+      p.words.forEach((w) => {
+        if (w.label == word) {
+          photo = w.photo;
         }
-    });
+      });
+    }
+  });
 
-    return res.status(200).json({
-        photo: photo
-    });
-}
+  return res.status(200).json({
+    photo: photo,
+  });
+};
 
 export const GetPhotoFile = async (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, '../data/photos', filename);
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, "../data/photos", filename);
 
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).json({
-            message: 'File not found'
-        });
-    }
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({
+      message: "File not found",
+    });
+  }
 
-    return res.sendFile(filePath);
-}
+  return res.sendFile(filePath);
+};

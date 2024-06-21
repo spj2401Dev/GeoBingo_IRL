@@ -1,6 +1,7 @@
 import { game } from '../models/game.mjs';
 import { GameStatus } from '../enums/gameStatusEnum.mjs';
 import { addPlayer } from '../services/playerService.mjs';
+import { player } from '../models/player.mjs';
 
 export const PostPlayer = async (req, res) => {
    if (game.status !== GameStatus.WAITING_FOR_PLAYERS) {

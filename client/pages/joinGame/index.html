@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📍 GeoBingo</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/../resources/font/Nunito.css">
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <img src="/resources/GeoBingoLogo.png" alt="Logo" class="logo">
+    </header>
+
+    <div class="block">
+        <h1 class="header-text">Join Game</h1>
+        <div id="qrcode"></div>
+        <p>Scan the QR code to join the game.</p>
+    </div>
+
+    <script>
+        const qrcode = new QRCode(document.getElementById('qrcode'), {
+            text: window.location.href,
+            width: 250,
+            height: 250,
+            colorDark : '#fff',
+            colorLight : '#1a1a1b',
+            correctLevel : QRCode.CorrectLevel.L
+        });
+    </script>
+</body>
+</html>

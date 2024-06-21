@@ -6,7 +6,7 @@ export const wordlist = [
     "Schrott Auto",
     "Kuh",
     "Ziege",
-    "\Kompensieren\"",
+    "\"Kompensieren\"", // Leo
     "Schön hier aber... Sticker", // Schön hier aber waren sie schon mal in Baden Württemberg
     "Bier"
 ];

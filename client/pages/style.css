@@ -1,0 +1,65 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: rgb(26, 26, 27);
+    font-family: 'Nunito', sans-serif !important;
+}
+
+.header {
+    background-color: rgb(0, 0, 0);
+    height: 100px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+}
+
+.logo {
+    height: 100px;
+    margin: 0 auto;
+    display: block;
+    filter: invert(1);
+}
+
+.block {
+    padding: 10px;
+    color: white;
+    width: calc(100% - 30px);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.header-text {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: -5px;
+}
+
+.number-input {
+    height: 35px;
+    width: 100%;
+    margin: 11px 0px 11px 0px;
+    padding-left: 10px;
+    border-radius: 5px;
+    border: 1px solid rgb(135, 135, 155);
+    background-color: transparent;
+    color: white;
+    font-family: 'Nunito', sans-serif !important;
+    transition: all 0.2;
+}
+
+.number-input:focus {
+    outline: none;
+    margin: 10px 0px 10px 0px;
+    border: 2px solid rgb(135, 135, 155);
+    width: calc(100% - 2px);
+    transition: all 0.2;
+}
+
+.button {
+    height: 39px;
+    width: calc(100% + 14px);
+    margin: 11px 0px 11px 0px;
+    border: 1px solid rgb(135, 135, 155);
+    background-color: transparent;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Nunito', sans-serif !important;
+}

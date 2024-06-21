@@ -17,3 +17,13 @@ export const PostPlayer = async (req, res) => {
         message: 'Player added successfully'
     });
 };
+
+export const GetPlayers = async (req, res) => {
+    if (player.players.length === 0) {
+    return res.status(204).send();
+} else {
+    return res.status(200).json({
+        players: player.players
+    });
+}
+};

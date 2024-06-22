@@ -9,6 +9,9 @@ body {
     background-color: rgb(0, 0, 0);
     height: 100px;
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+    background-image: url(../resources/Header.jpg);
+    background-size: cover;
+    background-position: center;
 }
 
 .logo {
@@ -62,4 +65,28 @@ body {
     border-radius: 5px;
     color: white;
     font-family: 'Nunito', sans-serif !important;
+}
+
+#qrcode {
+    margin: 0 auto;
+    width: 250px;
+    padding: 25px;
+    background: #2f2f35;
+    border-radius: 25px;
+}
+
+.centered {
+    text-align: center;
+}
+
+.card {
+    border: 1px solid #313032;
+    border-radius: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0px 0px 50px 0px rgba(0,0,0,0.29)
+}
+
+.card:first-child {
+    margin-top: 20px;
 }

@@ -23,7 +23,7 @@ export const setWords = async (req, res) => {
 
   userWordList = words;
 
-  await changeGameStatus(GameStatus.WAITING_FOR_PLAYERS)
+  await changeGameStatus(GameStatus.STARTING)
 
   return res.status(200).json({
     message: userWordList,

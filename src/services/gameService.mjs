@@ -2,13 +2,14 @@ import { game } from "../models/game.mjs";
 import { wordlist } from "../utility/wordsList.mjs";
 
 const gameName = generateGameName();
+var gameStatus = game.status;
 
 export function changeGameStatus(status) {
-    game.status = status;
+    gameStatus = status;
 }
 
-export function getGameStatus() {
-    return game.status;
+export function getGameStatusService() {
+    return gameStatus
 }
 
 function generateGameName() {

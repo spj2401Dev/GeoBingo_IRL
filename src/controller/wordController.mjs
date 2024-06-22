@@ -2,6 +2,7 @@ import { wordlist } from "../utility/wordsList.mjs";
 import { changeGameStatus } from "../services/gameService.mjs";
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
 import { getWordsFromPlayer } from "../services/playerService.mjs";
+import webSocketService from '../services/webSocketService.mjs';
 
 var wordsPerPlayer = 9;
 var userWordList = [];
@@ -24,6 +25,7 @@ export const setWords = async (req, res) => {
   userWordList = words;
 
   await changeGameStatus(GameStatus.STARTING)
+  webSocketService.broadcast('Words');
 
   return res.status(200).json({
     message: userWordList,

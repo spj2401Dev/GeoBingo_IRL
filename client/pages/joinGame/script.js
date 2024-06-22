@@ -1,10 +1,13 @@
 import WebSocketClient from '/resources/webSocketService.mjs';
 
+var isPlayerAdmin = false;
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeQRCode();
     initializeWebSocket();
     setupJoinButton();
     fetchPlayers();
+    document.getElementById('startButton').addEventListener('click', startGame);
 });
 
 function initializeQRCode() {
@@ -56,7 +59,7 @@ async function fetchPlayers() {
         
         const response = await fetch('/getPlayers');
         
-        if (response.ok) {
+        if (response.status === 200) {
             const players = await response.json();
             players.forEach(player => {
                 const li = document.createElement('li');
@@ -83,10 +86,43 @@ async function addPlayer(username) {
             body: JSON.stringify({ username })
         });
 
-        if (!response.ok) {
-            console.error('Failed to add player.');
+        if (response.status === 200) {
+            const data = await response.json();
+            localStorage.setItem('username', username);
+            if (data.admin === true) {
+                isPlayerAdmin = true; // Yea, its unsecure. But worst that can happen is that the user can start the game.
+                playerisAdmin();
+            }
+        } else {
+            alert('Failed to add player.');
         }
     } catch (error) {
         console.error('Error:', error);
     }
+}
+
+async function startGame() {
+    if (!isPlayerAdmin) { 
+        alert('Only the admin can start the game.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/startGame', {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            window.location.reload()
+        } else {
+            alert('Failed to start the game.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function playerisAdmin() {
+    const adminDiv = document.getElementById('admin');
+    adminDiv.style.display = 'block';
 }

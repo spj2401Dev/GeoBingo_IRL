@@ -12,12 +12,17 @@ export const PostPlayer = async (req, res) => {
     }
     
     const username = req.body.username;
+    var players = GetPlayers();
     addPlayer(username);
+    var isAdmin = false;
+    if (players == null) {
+        isAdmin = true;
+    }
 
     webSocketService.broadcast('Player refresh')
 
     return res.status(200).json({
-        message: 'Player added successfully'
+        admin: isAdmin,
     });
 };
 

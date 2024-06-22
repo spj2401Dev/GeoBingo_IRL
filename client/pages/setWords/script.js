@@ -1,7 +1,20 @@
+import WebSocketClient from '/resources/webSocketService.mjs';
+
 document.addEventListener("DOMContentLoaded", () => {
     createPromptInputs();
+    initializeWebSocket();
     document.getElementById("submit-button").addEventListener("click", submitPrompts);
 });
+
+function initializeWebSocket() {
+    const wsClient = new WebSocketClient('ws://192.168.178.123:8080');
+    
+    wsClient.addMessageHandler((message) => {
+        if (message === 'Words') {
+            window.location.reload()
+        }
+    });
+}
 
 function createPromptInputs() {
     const container = document.getElementById("prompt-container");
@@ -53,6 +66,6 @@ function submitPrompts() {
         })
         .catch(error => {
             console.error("Error:", error);
-            alert("Error" + error.message)
+            alert(error.message)
         });
 }

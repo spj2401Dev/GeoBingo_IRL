@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📍 GeoBingo</title>
     <link rel="stylesheet" href="/pages/style.css">
     <link rel="stylesheet" href="/../resources/font/Nunito.css">
-    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+    <script defer src="./pages/joinGame/script.js" type="module"></script>
 </head>
-
 <body>
     <header class="header">
         <img src="/resources/GeoBingoLogo.png" alt="Logo" class="logo">
@@ -17,7 +16,7 @@
 
     <div class="block">
         <h1 class="header-text">Join Game</h1>
-        <p>Waiting for players. When everyone joined, you can start the Game</p>
+        <p>Waiting for players. When everyone has joined, you can start the game.</p>
         <div id="qrcode"></div>
         <p class="centered">Scan the QR code to join the game.</p>
     </div>
@@ -32,89 +31,5 @@
         <h1 class="header-text">Players in Game</h1>
         <ul id="players"></ul>
     </div>
-
-    <script>
-        const qrcode = new QRCode(document.getElementById('qrcode'), {
-            text: window.location.href,
-            width: 250,
-            height: 250,
-            colorDark: '#fff',
-            colorLight: '#2f2f35',
-            correctLevel: QRCode.CorrectLevel.L
-        });
-    </script>
-
-    <script type="module">
-        import WebSocketClient from '/resources/webSocketService.mjs';
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const wsClient = new WebSocketClient('ws://192.168.178.123:8080');
-
-            wsClient.addMessageHandler((message) => {
-                if (message === 'Player refresh') {
-                    fetchPlayers();
-                } else if (message === "Start") {
-                    window.location.reload();
-                }
-            });
-
-            fetchPlayers();
-
-            const joinButton = document.getElementById('joinButton');
-            joinButton.addEventListener('click', () => {
-                const usernameInput = document.getElementById('username');
-                const username = usernameInput.value.trim();
-
-                if (username && username.length > 0 && username.length <= 20) {
-                    joinButton.disabled = true;
-                    addPlayer(username);
-                } else {
-                    alert('Please enter a username between 1 and 30 characters.');
-                }
-            });
-        });
-
-        async function fetchPlayers() {
-            try {
-                const playersList = document.getElementById('players');
-                playersList.innerHTML = '';
-                const response = await fetch('/getPlayers');
-                if (response.ok && response.status === 200) {
-                    const players = await response.json();
-                    players.forEach(player => {
-                        const li = document.createElement('li');
-                        li.textContent = player;
-                        playersList.appendChild(li);
-                    });
-                } else if (response.status === 204) {
-                    console.log('No players joined yet.');
-                } else {
-                    console.error('Failed to fetch players.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        async function addPlayer(username) {
-            try {
-                const response = await fetch('/addPlayer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username })
-                });
-
-                if (response.ok && response.status === 200) {
-                } else {
-                    console.error('Failed to add player.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-    </script>
 </body>
-
 </html>

@@ -1,22 +1,21 @@
 {
   "name": "geobingo",
   "version": "1.0.0",
-  "description": "",
+  "description": "A game where you have to find things in real life according to prompts and take a picture. ",
   "main": "src/app.mjs",
   "type": "module",
   "scripts": {
     "start": "node src/app.mjs",
-    "dev": "nodemon src/app.mjs",
-    "test": "mocha"
+    "dev": "nodemon src/app.mjs"
   },
-  "keywords": [],
+  "keywords": ["nodejs", "express", "game", "geobingo"],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-fileupload": "^1.5.0",
-    "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.4"
+    "nodemon": "^3.1.4",
+    "ws": "^8.17.1"
   }
 }

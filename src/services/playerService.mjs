@@ -66,7 +66,12 @@ export function AddImageToPlayer(image, player, word) {
     }
   }
 
-  console.log(targetPlayer);
-  console.log(targetWord);
   return;
+}
+
+export function GetPlayers() {
+  if (players == null || players.length === 0) {
+    return null;
+  }
+  return players.map(player => player.name);
 }

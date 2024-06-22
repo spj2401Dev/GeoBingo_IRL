@@ -4,19 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📍 GeoBingo</title>
-    <link rel="stylesheet" href="/pages/camara/style.css">
-    <style>
-        .player-item {
-            cursor: pointer;
-            padding: 10px;
-            margin-bottom: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f0f0f0;
-        }
-    </style>
+    <link rel="stylesheet" href="/pages/style.css">
+    <link rel="stylesheet" href="/../resources/font/Nunito.css">
 </head>
 <body>
+    <header class="header">
+        <img src="/resources/GeoBingoLogo.png" alt="Logo" class="logo">
+    </header>
+
+    <div class="block card">
+        <h1 class="centered" id="progress"></h1>
+    </div>
+
     <div id="playerList"></div>
 
     <script>
@@ -29,6 +28,7 @@
                 const response = await fetch('/getWordsForPlayer/Jakob');
                 const data = await response.json();
                 renderPlayerList(data);
+                updateProgress(data);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -43,9 +43,19 @@
             });
         }
 
+        function updateProgress(data) {
+            progressText = document.getElementById('progress');
+
+            var completed = data.filter(player => player.completed).length;
+            var total = data.length;
+
+            progressText.textContent = `Progress: ${completed}/${total} completed`;
+        }
+
         function createPlayerItem(player) {
             const div = document.createElement('div');
-            div.classList.add('player-item');
+            div.classList.add('block');
+            div.classList.add('card')
             const h3 = document.createElement('h3');
             const p = document.createElement('p');
 

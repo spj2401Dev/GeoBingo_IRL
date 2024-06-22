@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📍 GeoBingo</title>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="/pages/style.css">
     <link rel="stylesheet" href="/../resources/font/Nunito.css">
 </head>
 
@@ -90,8 +90,7 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Success:", data);
-                    // handle success response
+                    window.location.reload();
                 })
                 .catch((error) => {
                     console.error("Error:", error);

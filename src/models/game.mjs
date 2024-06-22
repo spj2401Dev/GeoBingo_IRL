@@ -6,5 +6,3 @@ export const game = {
     time: 0,
     words: [],
 };
-
-console.log("Initial game status:", game.status);  // Debugging line

@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
     createPromptInputs();
     initializeWebSocket();
     document.getElementById("submit-button").addEventListener("click", submitPrompts);
+    document.getElementById("perplayer").addEventListener("change", createPromptInputs);
 });
 
 function initializeWebSocket() {
@@ -38,6 +39,7 @@ function createPromptInputs() {
 function submitPrompts() {
     const promptContainer = document.getElementById("prompt-container");
     const promptInputs = promptContainer.getElementsByTagName("input");
+    const time = document.getElementById("duration").value;
     const prompts = [];
 
     for (let input of promptInputs) {
@@ -50,7 +52,8 @@ function submitPrompts() {
 
     const requestBody = {
         words: prompts,
-        wordsPerPlayer: wordsPerPlayer
+        wordsPerPlayer: wordsPerPlayer,
+        time: time
     };
 
     fetch("/words", {

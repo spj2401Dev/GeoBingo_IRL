@@ -22,7 +22,6 @@ export async function addPlayer(playerName) {
   if (players.length === 0) {
     player.isAdmin = true;
   } 
-  console.log(player);
 
   players.push(player);
 }
@@ -57,7 +56,7 @@ export function CheckIfPlayerExists(player) {
 }
 
 export function AddImageToPlayer(image, player, word) {
-  var targetPlayer = players.find(p => p.name === player);
+  var targetPlayer = players.find(p => p.name == player);
   if (targetPlayer) {
     var targetWord = targetPlayer.words.find(w => w.Label === word);
     if (targetWord) {

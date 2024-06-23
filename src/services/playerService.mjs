@@ -74,3 +74,23 @@ export function GetPlayers() {
   }
   return players.map(player => player.name);
 }
+
+export function GetFullPlayers() {
+  if (players == null || players.length === 0) {
+    return null;
+  }
+  return players;
+}
+
+export function DeclinePhoto(playername, word) {
+  players.forEach((p) => {
+    if (p.name == playername) {
+      p.words.forEach((w) => {
+        if (w.Label == word) {
+          w.photo = null;
+          w.completed = false;
+        }
+      });
+    }
+  });
+}

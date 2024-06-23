@@ -1,9 +1,10 @@
 import {
   CheckIfPlayerExists,
   AddImageToPlayer,
+  GetFullPlayers,
+  DeclinePhoto,
 } from "../services/playerService.mjs";
 import path from "path";
-import fs from "fs";
 
 const uploadDir = "data/photos/";
 
@@ -17,14 +18,14 @@ export const PostPhoto = async (req, res) => {
     }
 
     let uploadedFile = req.files.file;
-    let filename = word + Date.now() + ".jpg";
+    let sanitizedWord = word.replace(/[^a-zA-Z0-9-_]/g, "_");
+    let filename = sanitizedWord + Date.now() + ".jpg";
 
     const savePath = path.join(uploadDir, filename);
 
     uploadedFile.mv(savePath, (err) => {
       if (err) {
-        res.status(500).send(err);
-        return;
+        console.log(err);
       }
     });
 
@@ -64,15 +65,41 @@ export const GetPhoto = async (req, res) => {
   });
 };
 
-export const GetPhotoFile = async (req, res) => {
-  const filename = req.params.filename;
-  const filePath = path.join(__dirname, "../data/photos", filename);
 
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({
-      message: "File not found",
-    });
+export const GetAllPhotos = async (req, res) => {
+  const players = GetFullPlayers();
+
+  if (players == null) {
+    return res.status(204).json("No players found");
   }
 
-  return res.sendFile(filePath);
+  let response = [];
+
+  players.forEach((player) => {
+    let playerResponse = {
+      player: player.name,
+      words: [],
+    };
+
+    player.words.forEach((word) => {
+      if (word.photo) {
+        playerResponse.words.push({
+          word: word.Label,
+          photo: word.photo,
+        });
+      }
+    });
+
+    response.push(playerResponse);
+  });
+
+  return res.status(200).json(response);
 };
+
+export const DeclinePhotoController = async (req, res) => {
+  const playername = req.body.playername;
+  const word = req.body.word;
+  DeclinePhoto(playername, word);
+
+  res.status(200).send("Photo declined.");
+}

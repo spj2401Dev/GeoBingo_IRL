@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📍 GeoBingo</title>
     <link rel="stylesheet" href="/pages/style.css">
     <link rel="stylesheet" href="/../resources/font/Nunito.css">
-    <script defer src="./pages/camara/script.js" type="module"></script>
+    <link rel="stylesheet" href="/pages/confirmPhotos/style.css">
+    <script src="/pages/confirmPhotos/script.js" defer></script>
 </head>
+
 <body>
     <header class="header">
         <img src="/resources/GeoBingoLogo.png" alt="Logo" class="logo">
     </header>
 
-    <div class="block card">
-        <h1 class="centered" id="time">Time left: </h1>
+    <div class="block">
+        <h1 class="header-text">Game Over!</h1>
+        <p>Here are all the photos taken during the game. Please wait while an admin reviews the photos for any invalid submissions.</p>
     </div>
 
-    <div class="block card">
-        <h1 class="centered" id="progress"></h1>
-    </div>
-
-    <div id="playerList"></div>
+    <div class="photoContainer"></div>
 </body>
 </html>

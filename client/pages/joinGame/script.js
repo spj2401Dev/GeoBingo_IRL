@@ -93,6 +93,7 @@ async function addPlayer(username) {
                 isPlayerAdmin = true; // Yea, its unsecure. But worst that can happen is that the user can start the game.
                 playerisAdmin();
             }
+            await localStorage.setItem('isAdmin', data.admin);
         } else {
             alert('Failed to add player.');
         }

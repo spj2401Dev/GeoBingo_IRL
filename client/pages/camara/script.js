@@ -1,6 +1,19 @@
+import WebSocketClient from '/resources/webSocketService.mjs';
+
 document.addEventListener('DOMContentLoaded', () => {
     loadPlayerData();
+    initializeWebSocket();
 });
+
+function initializeWebSocket() {
+    const wsClient = new WebSocketClient('ws://192.168.178.123:8080');
+    
+    wsClient.addMessageHandler((message) => {
+        if (message === 'End') {
+            window.location.reload();
+        }
+    });
+}
 
 async function loadPlayerData() {
     try {

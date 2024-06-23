@@ -8,7 +8,12 @@
     "start": "node src/app.mjs",
     "dev": "nodemon src/app.mjs"
   },
-  "keywords": ["nodejs", "express", "game", "geobingo"],
+  "keywords": [
+    "nodejs",
+    "express",
+    "game",
+    "geobingo"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {

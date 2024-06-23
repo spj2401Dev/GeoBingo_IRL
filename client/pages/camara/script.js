@@ -4,10 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadPlayerData() {
     try {
-        const response = await fetch('/getWordsForPlayer/Jakob');
+        var player = await localStorage.getItem('username');
+        const response = await fetch('/getWordsForPlayer/' + player);
         const data = await response.json();
-        renderPlayerList(data);
-        updateProgress(data);
+        renderPlayerList(data.words);
+        updateProgress(data.words);
+        RenderTime(data.time);
     } catch (error) {
         console.error('Error fetching data:', error);
     }
@@ -37,7 +39,7 @@ function createPlayerItem(player) {
     h3.textContent = player.Label;
 
     const p = document.createElement('p');
-    p.textContent = player.completed ? 'Already completed' : 'Not completed yet';
+    p.textContent = player.completed ? 'Completed' : 'Not completed yet';
 
     div.appendChild(h3);
     div.appendChild(p);
@@ -56,9 +58,10 @@ function handleFileUpload(player) {
         const file = event.target.files[0];
         if (!file) return;
 
+        var username = await localStorage.getItem('username');
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('playername', 'Jakob');
+        formData.append('playername', username);
         formData.append('word', player.Label);
 
         try {
@@ -77,4 +80,32 @@ function handleFileUpload(player) {
     };
 
     input.click();
+}
+
+function RenderTime(endDate) {
+    const timeText = document.getElementById('time');
+    const endTime = new Date(endDate).getTime();
+    let timerInterval;
+
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    }
+
+    function updateTimer() {
+        const currentTime = new Date().getTime();
+        const timeLeft = Math.floor((endTime - currentTime) / 1000);
+
+        if (timeLeft <= 0) {
+            timeText.innerHTML = "Time's up!";
+            clearInterval(timerInterval);
+            return;
+        }
+
+        timeText.innerHTML = formatTime(timeLeft);
+    }
+
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
 }

@@ -1,7 +1,21 @@
+import WebSocketClient from '/resources/webSocketService.mjs';
+
 document.addEventListener("DOMContentLoaded", () => {
     createPromptInputs();
+    initializeWebSocket();
     document.getElementById("submit-button").addEventListener("click", submitPrompts);
+    document.getElementById("perplayer").addEventListener("change", createPromptInputs);
 });
+
+function initializeWebSocket() {
+    const wsClient = new WebSocketClient('ws://192.168.178.123:8080');
+    
+    wsClient.addMessageHandler((message) => {
+        if (message === 'Words') {
+            window.location.reload()
+        }
+    });
+}
 
 function createPromptInputs() {
     const container = document.getElementById("prompt-container");
@@ -25,6 +39,7 @@ function createPromptInputs() {
 function submitPrompts() {
     const promptContainer = document.getElementById("prompt-container");
     const promptInputs = promptContainer.getElementsByTagName("input");
+    const time = document.getElementById("duration").value;
     const prompts = [];
 
     for (let input of promptInputs) {
@@ -37,7 +52,8 @@ function submitPrompts() {
 
     const requestBody = {
         words: prompts,
-        wordsPerPlayer: wordsPerPlayer
+        wordsPerPlayer: wordsPerPlayer,
+        time: time
     };
 
     fetch("/words", {
@@ -53,6 +69,6 @@ function submitPrompts() {
         })
         .catch(error => {
             console.error("Error:", error);
-            alert("Error" + error.message)
+            alert(error.message)
         });
 }

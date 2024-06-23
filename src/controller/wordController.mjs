@@ -2,6 +2,8 @@ import { wordlist } from "../utility/wordsList.mjs";
 import { changeGameStatus } from "../services/gameService.mjs";
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
 import { getWordsFromPlayer } from "../services/playerService.mjs";
+import { game } from "../models/game.mjs";
+import webSocketService from '../services/webSocketService.mjs';
 
 var wordsPerPlayer = 9;
 var userWordList = [];
@@ -9,6 +11,7 @@ var userWordList = [];
 export const setWords = async (req, res) => {
   var words = req.body.words;
   wordsPerPlayer = req.body.wordsPerPlayer;
+  var time = req.body.time; // Time in Minutes
 
   if (words.length + wordlist.length < wordsPerPlayer) {
     return res.status(400).json({
@@ -22,8 +25,10 @@ export const setWords = async (req, res) => {
   }
 
   userWordList = words;
+  game.time = time;
 
   await changeGameStatus(GameStatus.STARTING)
+  webSocketService.broadcast('Words');
 
   return res.status(200).json({
     message: userWordList,
@@ -45,5 +50,10 @@ export const getWordsForPlayer = async (req, res) => {
     });
   }
 
-  return res.status(200).json(words);
+  var response = {
+    words: words,
+    time: game.endTime,
+  };
+
+  return res.status(200).json(response);
 };

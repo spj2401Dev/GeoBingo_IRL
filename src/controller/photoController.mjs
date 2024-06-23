@@ -11,8 +11,6 @@ export const PostPhoto = async (req, res) => {
   try {
     const word = req.body.word;
 
-    console.log(req.body);
-
     if (!req.files || Object.keys(req.files).length === 0) {
       res.status(400).send("No files were uploaded.");
       return;
@@ -25,7 +23,6 @@ export const PostPhoto = async (req, res) => {
 
     uploadedFile.mv(savePath, (err) => {
       if (err) {
-        console.log(err);
         res.status(500).send(err);
         return;
       }
@@ -34,10 +31,9 @@ export const PostPhoto = async (req, res) => {
     const playername = req.body.playername;
     AddImageToPlayer(savePath, playername, word);
 
-    console.log("File uploaded! " + filename);
     res.send({ message: "File uploaded!", filename: filename });
   } catch (err) {
-    console.log(err);
+    res.status(500).send("Error uploading file.");
   }
 };
 

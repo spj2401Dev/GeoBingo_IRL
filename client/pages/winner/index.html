@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📍 GeoBingo</title>
+    <link rel="stylesheet" href="/pages/style.css">
+    <link rel="stylesheet" href="/../resources/font/Nunito.css">
+</head>
+
+<body>
+    <header class="header">
+        <img src="/resources/GeoBingoLogo.png" alt="Logo" class="logo">
+    </header>
+
+    <div class="block">
+        <h1 class="header-text">Winners</h1>
+        <p>After all the invalid submissions were filtered out. Here are the Final Results</p>
+    </div>
+
+    <div id="winner-cards"> </div>
+
+    <script>
+        fetch('/getWinner')
+            .then(response => response.json())
+            .then(data => {
+                const winners = [];
+                let currentRank = 1;
+
+                for (let i = 0; i < data.length; i++) {
+                    if (i > 0 && data[i].completedPhotos !== data[i - 1].completedPhotos) {
+                        currentRank = i + 1;
+                    }
+                    winners.push({
+                        rank: currentRank,
+                        name: data[i].player,
+                        score: data[i].completedPhotos
+                    });
+                }
+
+                const cardWrapper = document.getElementById('winner-cards');
+                let allCardsHtml = '';
+
+                winners.forEach((winner, index) => {
+                    if (index === 0) {
+                        allCardsHtml += `
+          <div class="block card">
+            <h1 class="header-text">🥇 First Place:</h1>
+            <p><strong>${winner.name}</strong></p>
+            <p>With a Score of: ${winner.score} Points</p>
+          </div>
+        `;
+                    } else {
+                        allCardsHtml += `
+          <div class="block card">
+            <p>${winner.rank}. <strong>${winner.name}</strong> (${winner.score} Points)</p>
+          </div>
+        `;
+                    }
+                });
+
+                cardWrapper.innerHTML = allCardsHtml;
+            })
+            .catch(error => console.error('Error:', error));
+
+    </script>
+</body>
+
+</html>

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/pages/style.css">
     <link rel="stylesheet" href="/../resources/font/Nunito.css">
     <link rel="stylesheet" href="/pages/confirmPhotos/style.css">
-    <script src="/pages/confirmPhotos/script.js" defer></script>
+    <script src="/pages/confirmPhotos/script.js" defer type="module"></script>
 </head>
 
 <body>
@@ -19,6 +19,10 @@
     <div class="block">
         <h1 class="header-text">Game Over!</h1>
         <p>Here are all the photos taken during the game. Please wait while an admin reviews the photos for any invalid submissions.</p>
+    </div>
+
+    <div class="block" style="display: none;" id="doneContainer">
+        <button class="button" id="done">Confirm</button>
     </div>
 
     <div class="photoContainer"></div>

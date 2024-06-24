@@ -93,4 +93,16 @@ function renderPhotos(data, isAdmin) {
     });
 }
 
+function renderConfirmButton(isAdmin) {
+    if (!isAdmin) {
+        return
+    }
+
+    const confirmButton = document.createElement('button');
+    confirmButton.className = 'button';
+    confirmButton.textContent = 'Done Reviewing';
+
+    
+}
+
 fetchPhotos();

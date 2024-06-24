@@ -2,9 +2,9 @@ import express from "express";
 import fileUpload from 'express-fileupload';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { PostPhoto, GetAllPhotos, DeclinePhotoController } from "./controller/PhotoController.mjs";
+import { PostPhoto, GetAllPhotos, DeclinePhotoController } from "./controller/photoController.mjs";
 import { setWords, getWordsForPlayer } from "./controller/wordController.mjs";
-import { getGameStatus, startGameController } from "./controller/gameController.mjs";
+import { getGameStatus, startGameController, getWinnerController } from "./controller/gameController.mjs";
 import { GetPlayersApi, PostPlayer } from "./controller/playerController.mjs";
 import { GameStatus } from './enums/gameStatusEnum.mjs';
 import { getGameStatusService } from './services/gameService.mjs';
@@ -18,6 +18,7 @@ app.use(express.json());
 
 app.get("/getGameStatus", getGameStatus);
 app.post("/startGame", startGameController);
+app.get("/getWinner", getWinnerController);
 
 app.post("/words", setWords);
 
@@ -42,7 +43,7 @@ app.get("/", async (req, res) => {
     case GameStatus.RUNNING:
       res.sendFile(path.join(__dirname, '../client/pages/camara/index.html'));
       break;
-    case GameStatus.ENDED:
+    case GameStatus.REVIEW:
       res.sendFile(path.join(__dirname, '../client/pages/confirmPhotos/index.html'));
       break;
     default:

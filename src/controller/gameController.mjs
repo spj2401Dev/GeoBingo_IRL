@@ -25,7 +25,7 @@ export const startGameController = async (req, res) => {
     setTimeout(() => {
         webSocketService.broadcast('End');
         console.log('Game ended');
-        changeGameStatus(GameStatus.ENDED);
+        changeGameStatus(GameStatus.REVIEW);
     }, durationUntilEnd);
 
     return res.status(200).json({
@@ -35,6 +35,8 @@ export const startGameController = async (req, res) => {
 
 export const ConfirmReview = async (req, res) => {
     changeGameStatus(GameStatus.ENDED);
+
+    webSocketService.broadcast('Win');
 
     return res.status(200).json({
         message: 'Game ended'

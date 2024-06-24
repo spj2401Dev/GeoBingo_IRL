@@ -5,6 +5,7 @@ import {
   DeclinePhoto,
 } from "../services/playerService.mjs";
 import path from "path";
+import webSocketService from "../services/webSocketService.mjs";
 
 const uploadDir = "data/photos/";
 
@@ -100,6 +101,8 @@ export const DeclinePhotoController = async (req, res) => {
   const playername = req.body.playername;
   const word = req.body.word;
   DeclinePhoto(playername, word);
+
+  webSocketService.broadcast("Decline");
 
   res.status(200).send("Photo declined.");
 }

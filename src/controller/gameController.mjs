@@ -2,6 +2,7 @@ import { changeGameStatus } from '../services/gameService.mjs';
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
 import webSocketService from '../services/webSocketService.mjs';
 import { game } from '../models/game.mjs';
+import { GetWinner } from '../services/playerService.mjs';
 
 export const getGameStatus = async (req, res) => {
     return res.status(200).json({
@@ -30,4 +31,18 @@ export const startGameController = async (req, res) => {
     return res.status(200).json({
         message: 'Game started'
     });
+}
+
+export const ConfirmReview = async (req, res) => {
+    changeGameStatus(GameStatus.ENDED);
+
+    return res.status(200).json({
+        message: 'Game ended'
+    });
+}
+
+export const getWinnerController = async (req, res) => {
+    var response = GetWinner();
+
+    res.status(200).json(response);
 }

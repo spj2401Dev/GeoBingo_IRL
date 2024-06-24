@@ -13,15 +13,15 @@ export async function addPlayer(playerName) {
 
   player.words = words.map((word, index) => {
     if (WordModel[index]) {
-      return { ...WordModel[index], Label: word, completed: false, photo: ""};
+      return { ...WordModel[index], Label: word, completed: false, photo: "" };
     } else {
-      return { Label: word, completed: false, photo: ""};
+      return { Label: word, completed: false, photo: "" };
     }
   });
 
   if (players.length === 0) {
     player.isAdmin = true;
-  } 
+  }
 
   players.push(player);
 }
@@ -93,4 +93,19 @@ export function DeclinePhoto(playername, word) {
       });
     }
   });
+}
+
+export function GetWinner() {
+  let rankList = [];
+
+  players.forEach((p) => {
+    let completedPhotos = p.words.filter((w) => w.completed === true);
+    rankList.push({ player: p.name, completedPhotos: completedPhotos.length });
+  });
+
+  rankList.sort((a, b) => {
+    return b.completedPhotos - a.completedPhotos;
+  });
+
+  return rankList;
 }

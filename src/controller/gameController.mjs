@@ -1,4 +1,4 @@
-import { changeGameStatus } from '../services/gameService.mjs';
+import { changeGameStatus, resetGame } from '../services/gameService.mjs';
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
 import webSocketService from '../services/webSocketService.mjs';
 import { game } from '../models/game.mjs';
@@ -47,4 +47,11 @@ export const getWinnerController = async (req, res) => {
     var response = GetWinner();
 
     res.status(200).json(response);
+}
+
+export const resetGameController = async (req, res) => { // Should probably secure this api endpoint somehow. 
+    resetGame();
+    return res.status(200).json({
+        message: 'Game reset'
+    });
 }

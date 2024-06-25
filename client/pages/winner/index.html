@@ -21,7 +21,20 @@
 
     <div id="winner-cards"> </div>
 
+    <div style="display: none;" id="admin">
+        <button class="button" id="reset">Reset Game</button>
+    </div>
     <script>
+        if (localStorage.getItem("isAdmin") === "true") {
+            document.getElementById('admin').style.display = 'block';
+            document.getElementById('reset').addEventListener('click', async () => {
+                await fetch('/resetGame', {
+                    method: 'GET'
+                });
+                window.location.href = '/';
+            });
+        }
+        
         fetch('/getWinner')
             .then(response => response.json())
             .then(data => {

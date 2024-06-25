@@ -57,3 +57,7 @@ export const getWordsForPlayer = async (req, res) => {
 
   return res.status(200).json(response);
 };
+
+export function resetWords() {
+  userWordList = [];
+}

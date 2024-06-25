@@ -37,7 +37,7 @@ body {
 
 .number-input {
     height: 35px;
-    width: 100%;
+    width: calc(100% - 14px);
     margin: 11px 0px 11px 0px;
     padding-left: 10px;
     border-radius: 5px;
@@ -52,13 +52,13 @@ body {
     outline: none;
     margin: 10px 0px 10px 0px;
     border: 2px solid rgb(135, 135, 155);
-    width: calc(100% - 2px);
+    width: calc(100% - 17px);
     transition: all 0.2;
 }
 
 .button {
     height: 39px;
-    width: calc(100% + 14px);
+    width: calc(100% - 2px);
     margin: 11px 0px 11px 0px;
     border: 1px solid rgb(135, 135, 155);
     background-color: transparent;

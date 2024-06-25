@@ -109,3 +109,7 @@ export function GetWinner() {
 
   return rankList;
 }
+
+export function ResetPlayers() {
+  players = [];
+}

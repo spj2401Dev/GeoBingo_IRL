@@ -21,6 +21,12 @@ function createPromptInputs() {
     const container = document.getElementById("prompt-container");
     const numberOfPrompts = parseInt(document.getElementById("perplayer").value, 10) || 9;
     const currentInputs = container.getElementsByTagName("input").length;
+    var time = document.getElementById("duration");
+
+    if (time.value < 1) {
+        time.value = numberOfPrompts * 5;
+        time.innerHTML = numberOfPrompts * 5;
+    }
 
     if (numberOfPrompts > currentInputs) {
         for (let i = currentInputs; i < numberOfPrompts; i++) {
@@ -41,6 +47,21 @@ function submitPrompts() {
     const promptInputs = promptContainer.getElementsByTagName("input");
     const time = document.getElementById("duration").value;
     const prompts = [];
+
+    if (time < 1) {
+        alert("Please enter a valid duration");
+        return;
+    }
+
+    if (time < 10) {
+        if (!confirm("Are you sure you want to start the game with less than 10 minutes?")) {
+            return;
+        }
+    } else if (time > 60) {
+        if (!confirm("Are you sure you want to start the game with more than 60 minutes?")) {
+            return;
+        }
+    }
 
     for (let input of promptInputs) {
         if (input.value.trim() !== "") {

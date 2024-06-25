@@ -1,4 +1,5 @@
 import { WebSocketServer } from "ws";
+import config from '../../config.json' assert { type: 'json' };
 
 class WebSocketService {
   constructor(port) {
@@ -15,7 +16,7 @@ class WebSocketService {
     });
 
     console.log(
-      `WebSocket server is running on ws://localhost:${this.wss.options.port}`
+      `WebSocket server is running on ws://${config.WebSocket.Ip}:${this.wss.options.port}`
     );
   }
 
@@ -28,5 +29,5 @@ class WebSocketService {
   }
 }
 
-const webSocketService = new WebSocketService(8080);
+const webSocketService = new WebSocketService(config.WebSocket.Port);
 export default webSocketService;

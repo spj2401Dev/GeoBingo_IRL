@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initializeWebSocket() {
-    const wsClient = new WebSocketClient('ws://192.168.178.123:8080');
+    const wsClient = new WebSocketClient();
     
     wsClient.addMessageHandler((message) => {
         if (message === 'Words') {

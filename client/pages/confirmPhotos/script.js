@@ -17,7 +17,7 @@ async function fetchPhotos() {
 }
 
 function initializeWebSocket() {
-    const wsClient = new WebSocketClient('ws://192.168.178.123:8080');
+    const wsClient = new WebSocketClient();
     
     wsClient.addMessageHandler((message) => {
         if (message === 'Decline') {
@@ -46,7 +46,7 @@ function createPhotoBlock(word, player, isAdmin) {
 
   const img = document.createElement("img");
   img.className = "confirm-photo";
-  img.src = `/${word.photo.split("data\\photos\\").pop()}`;
+  img.src = `/${word.photo}`;
   img.alt = word.word;
 
   photoBlock.appendChild(title);

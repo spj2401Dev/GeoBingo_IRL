@@ -8,6 +8,7 @@ import { getGameStatus, startGameController, getWinnerController, ConfirmReview 
 import { GetPlayersApi, PostPlayer } from "./controller/playerController.mjs";
 import { GameStatus } from './enums/gameStatusEnum.mjs';
 import { getGameStatusService } from './services/gameService.mjs';
+import config from '../config.json' assert { type: 'json' };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,8 +48,11 @@ app.get("/", async (req, res) => {
     case GameStatus.REVIEW:
       res.sendFile(path.join(__dirname, '../client/pages/confirmPhotos/index.html'));
       break;
+      case GameStatus.ENDED:
+      res.sendFile(path.join(__dirname, '../client/pages/winner/index.html'));
+      break;
     default:
-      res.sendStatus(404).send("Not found");
+      res.status(404).send("Not found");
       break;
   }
 });
@@ -56,6 +60,6 @@ app.get("/", async (req, res) => {
 app.use(express.static("client"));
 app.use(express.static("data/photos"));
 
-app.listen(3000, "192.168.178.123", () => {
-  console.log("Server is running on port 3000");
+app.listen(config.Api.Port, config.Api.Ip, () => {
+  console.log("Api running on http://" + config.Api.Ip + ":" + config.Api.Port);
 });

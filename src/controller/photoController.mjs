@@ -6,11 +6,17 @@ import {
 } from "../services/playerService.mjs";
 import path from "path";
 import webSocketService from "../services/webSocketService.mjs";
+import fs from 'fs';
 
 const uploadDir = "data/photos/";
 
 export const PostPhoto = async (req, res) => {
   try {
+    if (!fs.existsSync(uploadDir)){
+      fs.mkdirSync(uploadDir, { recursive: true });
+      console.info("Created " + uploadDir + " folder!")
+    }
+
     const word = req.body.word;
 
     if (!req.files || Object.keys(req.files).length === 0) {
@@ -31,7 +37,7 @@ export const PostPhoto = async (req, res) => {
     });
 
     const playername = req.body.playername;
-    AddImageToPlayer(savePath, playername, word);
+    AddImageToPlayer(filename, playername, word);
 
     res.send({ message: "File uploaded!", filename: filename });
   } catch (err) {

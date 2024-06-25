@@ -1,5 +1,5 @@
 class WebSocketClient {
-    constructor(url = "ws://127.0.0.1:8080", reconnectInterval = 5000) {
+    constructor(url = "ws://192.168.178.123:8080", reconnectInterval = 5000) {
         this.url = url;
         this.reconnectInterval = reconnectInterval; // ms
         this.messageHandlers = [];

@@ -37,16 +37,36 @@ function setupJoinButton() {
     const joinButton = document.getElementById('joinButton');
     joinButton.addEventListener('click', () => {
         const usernameInput = document.getElementById('username');
-        const username = usernameInput.value.trim();
+        const teamNameInput = document.getElementById('teamName');
+        const isTeamCheckbox = document.getElementById('isTeam').checked;
+        
+        let username = usernameInput.value.trim();
+        let teamName = teamNameInput.value.trim();
 
-        if (isValidUsername(username)) {
-            joinButton.disabled = true;
-            addPlayer(username);
+        if (isTeamCheckbox && teamName) {
+            if (isValidUsername(username) && isValidUsername(teamName)) {
+                joinButton.disabled = true;
+                
+                let newUsername = teamName;
+                let newTeamName = `${username} (${teamName})`;
+
+                addPlayer(newUsername, newTeamName);
+            } else {
+                alert('Please enter a valid username and team name, each between 1 and 20 characters.');
+            }
+        } else if (!isTeamCheckbox) {
+            if (isValidUsername(username)) {
+                joinButton.disabled = true;
+                addPlayer(username, teamName);
+            } else {
+                alert('Please enter a valid username between 1 and 20 characters.');
+            }
         } else {
-            alert('Please enter a username between 1 and 20 characters.');
+            alert('Please enter a team name.');
         }
     });
 }
+
 
 function isValidUsername(username) {
     return username.length > 0 && username.length <= 20;
@@ -76,14 +96,14 @@ async function fetchPlayers() {
     }
 }
 
-async function addPlayer(username) {
+async function addPlayer(username, teamName = null) {
     try {
         const response = await fetch('/addPlayer', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username })
+            body: JSON.stringify({ username, teamName})
         });
 
         if (response.status === 200) {
@@ -127,3 +147,12 @@ function playerisAdmin() {
     const adminDiv = document.getElementById('admin');
     adminDiv.style.display = 'block';
 }
+
+document.getElementById('isTeam').addEventListener('change', function() {
+    var teamNameContainer = document.getElementById('teamNameContainer');
+    if (this.checked) {
+        teamNameContainer.classList.remove('hidden');
+    } else {
+        teamNameContainer.classList.add('hidden');
+    }
+});

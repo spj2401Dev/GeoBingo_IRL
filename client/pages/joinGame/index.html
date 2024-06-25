@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <script defer src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
     <script defer src="./pages/joinGame/script.js" type="module"></script>
 </head>
+
 <body>
     <header class="header">
         <img src="/resources/GeoBingoLogo.png" alt="Logo" class="logo">
@@ -24,6 +26,15 @@
     <div class="block">
         <label for="username">Username</label> <br>
         <input class="number-input" type="text" id="username">
+
+        <div id="teamNameContainer" class="hidden">
+            <label for="teamName">Team Name</label> <br>
+            <input class="number-input" type="text" id="teamName">
+        </div>
+
+        <input type="checkbox" id="isTeam">
+        <label for="isTeam">Create Team</label>
+
         <button class="button" id="joinButton">Join</button>
     </div>
 
@@ -36,4 +47,5 @@
         <button class="button" id="startButton">Start Game</button>
     </div>
 </body>
+
 </html>

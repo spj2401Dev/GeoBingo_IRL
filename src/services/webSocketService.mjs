@@ -10,8 +10,7 @@ class WebSocketService {
   initialize() {
     this.wss.on("connection", (ws) => {
       ws.on("message", (message) => {
-        console.log("Received:", message);
-        this.broadcast(`Broadcast: ${message}`);
+        this.broadcast(`${message}`);
       });
     });
 

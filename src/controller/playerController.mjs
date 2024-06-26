@@ -12,8 +12,10 @@ export const PostPlayer = async (req, res) => {
     }
     
     const username = req.body.username;
+    const teamName = req.body.teamName;	
+
     var players = GetPlayers();
-    addPlayer(username);
+    addPlayer(username, teamName);
     var isAdmin = false;
     if (players == null) {
         isAdmin = true;

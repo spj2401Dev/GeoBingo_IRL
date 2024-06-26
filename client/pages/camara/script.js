@@ -1,4 +1,5 @@
 import WebSocketClient from '/resources/webSocketService.mjs';
+const wsClient = new WebSocketClient();
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPlayerData();
@@ -6,11 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeWebSocket() {
-    const wsClient = new WebSocketClient();
     
     wsClient.addMessageHandler((message) => {
         if (message === 'End') {
             window.location.reload();
+        } else {
+            loadPlayerData();
         }
     });
 }
@@ -20,6 +22,9 @@ async function loadPlayerData() {
         var player = await localStorage.getItem('username');
         const response = await fetch('/getWordsForPlayer/' + player);
         const data = await response.json();
+
+        data.words.sort((a, b) => a.completed - b.completed);
+
         renderPlayerList(data.words);
         updateProgress(data.words);
         RenderTime(data.time);
@@ -52,7 +57,7 @@ function createPlayerItem(player) {
     h3.textContent = player.Label;
 
     const p = document.createElement('p');
-    p.textContent = player.completed ? 'Completed' : 'Not completed yet';
+    p.textContent = player.completed ? '✔ Completed' : 'Not completed yet';
 
     div.appendChild(h3);
     div.appendChild(p);
@@ -87,6 +92,7 @@ function handleFileUpload(player) {
             });
             const data = await response.json();
             await loadPlayerData();
+            await wsClient.sendMessage(username); // If you name yourself "End" you will end the game. Please don't do that.
         } catch (error) {
             console.error('Error uploading file:', error);
         }

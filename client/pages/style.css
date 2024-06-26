@@ -45,7 +45,7 @@ body {
     background-color: transparent;
     color: white;
     font-family: 'Nunito', sans-serif !important;
-    transition: all 0.2;
+    transition: all 0.2s;
 }
 
 .number-input:focus {
@@ -53,7 +53,7 @@ body {
     margin: 10px 0px 10px 0px;
     border: 2px solid rgb(135, 135, 155);
     width: calc(100% - 17px);
-    transition: all 0.2;
+    transition: all 0.2s;
 }
 
 .button {
@@ -65,6 +65,23 @@ body {
     border-radius: 5px;
     color: white;
     font-family: 'Nunito', sans-serif !important;
+    transition: all 0.2s;
+}
+
+.button:disabled {
+    color: rgb(135, 135, 155);
+    background-color: #2f2f35;
+    transition: all 0.2s;
+}
+
+.button:hover {
+    border-radius: 1px;
+    transition: all 0.2s;
+}
+
+.button:hover:disabled {
+    border-radius: 5px;
+    transition: all 0.2s;
 }
 
 #qrcode {
@@ -84,9 +101,37 @@ body {
     border-radius: 10px;
     margin-top: 15px;
     margin-bottom: 15px;
-    box-shadow: 0px 0px 50px 0px rgba(0,0,0,0.29)
+    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29)
 }
 
 .card:first-child {
     margin-top: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+input[type=checkbox] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border: 1px solid #313032;
+    border-radius: 2px;
+    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29);
+    cursor: pointer;
+    transition: background 0.3s ease;
+    vertical-align: middle;
+}
+
+input[type=checkbox]:checked {
+    background: #4444c9;
+    border-color: #4444c9;
+    transition: background 0.3s ease;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
 }

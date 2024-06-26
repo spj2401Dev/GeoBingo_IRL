@@ -5,11 +5,15 @@ import { word as WordModel } from "../models/word.mjs";
 
 var players = game.players;
 
-export async function addPlayer(playerName) {
+export async function addPlayer(playerName, team) {
   let player = Object.assign({}, PlayerModel);
   var words = await getWords();
 
   player.name = playerName;
+
+  if (team) {
+    player.team = team;
+  }
 
   player.words = words.map((word, index) => {
     if (WordModel[index]) {
@@ -72,7 +76,7 @@ export function GetPlayers() {
   if (players == null || players.length === 0) {
     return null;
   }
-  return players.map(player => player.name);
+  return players.map(player => ({ name: player.name, team: player.team }));
 }
 
 export function GetFullPlayers() {

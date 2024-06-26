@@ -122,10 +122,16 @@ input[type=checkbox] {
     box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29);
     cursor: pointer;
     transition: background 0.3s ease;
+    vertical-align: middle;
 }
 
 input[type=checkbox]:checked {
     background: #4444c9;
     border-color: #4444c9;
     transition: background 0.3s ease;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
 }

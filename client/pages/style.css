@@ -101,7 +101,7 @@ body {
     border-radius: 10px;
     margin-top: 15px;
     margin-bottom: 15px;
-    box-shadow: 0px 0px 50px 0px rgba(0,0,0,0.29)
+    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29)
 }
 
 .card:first-child {
@@ -110,4 +110,22 @@ body {
 
 .hidden {
     display: none;
+}
+
+input[type=checkbox] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border: 1px solid #313032;
+    border-radius: 2px;
+    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29);
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+input[type=checkbox]:checked {
+    background: #4444c9;
+    border-color: #4444c9;
+    transition: background 0.3s ease;
 }

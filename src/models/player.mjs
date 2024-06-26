@@ -2,5 +2,6 @@ export const player = {
     name: '',
     words: [],
     isAdmin: false,
-    team: ""
+    team: "",
+    votes: 0
 }

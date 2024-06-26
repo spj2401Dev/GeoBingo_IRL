@@ -51,6 +51,7 @@ function submitPrompts() {
   const promptContainer = document.getElementById("prompt-container");
   const promptInputs = promptContainer.getElementsByTagName("input");
   const time = document.getElementById("duration").value;
+  const votes = document.getElementById("votes").value;
   const prompts = [];
 
   if (time < 1) {
@@ -76,6 +77,12 @@ function submitPrompts() {
     }
   }
 
+  if (votes == 0) {
+    if (!confirm("Are you sure you want to start the game without voting?")) {
+      return;
+    }
+  }
+
   for (let input of promptInputs) {
     if (input.value.trim() !== "") {
       prompts.push(input.value);
@@ -88,6 +95,7 @@ function submitPrompts() {
     words: prompts,
     wordsPerPlayer: wordsPerPlayer,
     time: time,
+    votesPerPlayer: votes,
   };
 
   fetch("/words", {
@@ -100,7 +108,10 @@ function submitPrompts() {
     .then((response) => {
       if (response.status !== 200) {
         console.log(response);
-        throw new Error(response.statusText + ". You might left out more words than were defined in the word list.");
+        throw new Error(
+          response.statusText +
+            ". You might left out more words than were defined in the word list."
+        );
       }
       return response.json();
     })

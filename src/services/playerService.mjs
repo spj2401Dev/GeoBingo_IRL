@@ -104,7 +104,7 @@ export function GetWinner() {
 
   players.forEach((p) => {
     let completedPhotos = p.words.filter((w) => w.completed === true);
-    rankList.push({ player: p.name, completedPhotos: completedPhotos.length });
+    rankList.push({ player: p.name, completedPhotos: completedPhotos.length, isTeam: p.team !== ""});
   });
 
   rankList.sort((a, b) => {

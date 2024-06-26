@@ -1,4 +1,5 @@
 import WebSocketClient from '/resources/webSocketService.mjs';
+const wsClient = new WebSocketClient();
 
 document.addEventListener('DOMContentLoaded', () => {
     loadPlayerData();
@@ -6,11 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeWebSocket() {
-    const wsClient = new WebSocketClient();
     
     wsClient.addMessageHandler((message) => {
         if (message === 'End') {
             window.location.reload();
+        } else {
+            var username = localStorage.getItem('username');
+            if (message.username == username) {
+                loadPlayerData();
+            }
         }
     });
 }
@@ -87,6 +92,7 @@ function handleFileUpload(player) {
             });
             const data = await response.json();
             await loadPlayerData();
+            await wsClient.sendMessage(JSON.stringify({ username })); // If you name yourself "End" you will end the game. Please don't do that.
         } catch (error) {
             console.error('Error uploading file:', error);
         }

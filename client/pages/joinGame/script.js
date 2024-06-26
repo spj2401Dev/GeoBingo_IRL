@@ -83,7 +83,7 @@ async function fetchPlayers() {
             const players = await response.json();
             players.forEach(player => {
                 const li = document.createElement('li');
-                li.textContent = player;
+                li.textContent = player.team ? player.team : player.name;
                 playersList.appendChild(li);
             });
         } else if (response.status === 204) {

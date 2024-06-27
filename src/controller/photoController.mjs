@@ -93,6 +93,7 @@ export const GetAllPhotos = async (req, res) => {
         playerResponse.words.push({
           word: word.Label,
           photo: word.photo,
+          votes: word.votes,
         });
       }
     });

@@ -1,190 +1,239 @@
-import WebSocketClient from '/resources/webSocketService.mjs';
+import WebSocketClient from "/resources/webSocketService.mjs";
 
-document.addEventListener("DOMContentLoaded", function() {
-    fetchPhotos();
-    initializeWebSocket();
+document.addEventListener("DOMContentLoaded", function () {
+  fetchPhotos();
+  initializeWebSocket();
 });
 
 async function fetchPhotos() {
-    try {
-        const data = await getAllPhotos();
-        const isAdmin = JSON.parse(localStorage.getItem("isAdmin"));
-        const currentUser = localStorage.getItem("username"); // assuming you store the current username in localStorage
-        const votesLeft = await getVotesLeft(currentUser);
+  try {
+    const data = await getAllPhotos();
+    const isAdmin = JSON.parse(localStorage.getItem("isAdmin"));
 
-        renderPhotos(data, isAdmin, currentUser, votesLeft);
-    } catch (error) {
-        console.error("Error fetching photos:", error);
-    }
+    getUserVotes(localStorage.getItem("username"));
+    renderPhotos(data, isAdmin);
+  } catch (error) {
+    console.error("Error fetching photos:", error);
+  }
 }
 
 function initializeWebSocket() {
-    const wsClient = new WebSocketClient();
+  const wsClient = new WebSocketClient();
 
-    wsClient.addMessageHandler((message) => {
-        if (message === 'Decline') {
-            fetchPhotos();
-        } else if (message === "Win") {
-            window.location.reload();
-        }
-    });
+  wsClient.addMessageHandler((message) => {
+    if (message === "Decline") {
+      fetchPhotos();
+    } else if (message === "Win") {
+      window.location.reload();
+    }
+  });
 }
 
 async function getAllPhotos() {
-    const response = await fetch("/allPhotos");
-    if (!response.ok) {
-        throw new Error("Failed to fetch photos");
-    }
-    return response.json();
+  const response = await fetch("/allPhotos");
+  if (!response.ok) {
+    throw new Error("Failed to fetch photos");
+  }
+  return response.json();
 }
 
-async function getVotesLeft(username) {
-    const response = await fetch(`/vote/${username}`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch votes left");
-    }
-    return response.text(); // Assuming the response is a plain number in text format
+async function getUserVotes(username) {
+  const votesHeader = document.getElementById("votes-left");
+  const response = await fetch(`/vote/${username}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch user votes");
+  }
+  const votes = await response.json();
+  var parsedVotes = parseInt(votes, 10);
+  votesHeader.innerHTML = `Votes Left: ${parsedVotes}`;
+  return parsedVotes;
 }
 
-function createPhotoBlock(word, player, isAdmin, currentUser, votesLeft) {
-    const photoBlock = document.createElement("div");
-    photoBlock.className = "block card";
+async function createPhotoBlock(word, player, isAdmin) {
+  const photoBlock = document.createElement("div");
+  photoBlock.className = "block card";
+  photoBlock.dataset.word = word.word;
+  photoBlock.dataset.player = player.player;
 
-    const title = document.createElement("h2");
-    title.className = "image-title";
-    title.textContent = word.word;
+  const title = document.createElement("h2");
+  title.className = "image-title";
+  title.textContent = word.word;
 
-    const img = document.createElement("img");
-    img.className = "confirm-photo";
-    img.src = `/${word.photo}`;
-    img.alt = word.word;
+  const img = document.createElement("img");
+  img.className = "confirm-photo";
+  img.src = `/${word.photo}`;
+  img.alt = word.word;
 
-    photoBlock.appendChild(title);
-    photoBlock.appendChild(img);
+  photoBlock.appendChild(title);
+  photoBlock.appendChild(img);
 
-    if (isAdmin) {
-        const adminDiv = createAdminDiv(player, word, photoBlock);
-        renderConfirmButton(isAdmin);
-        photoBlock.appendChild(adminDiv);
+  if (isAdmin) {
+    const adminDiv = createAdminDiv(player, word, photoBlock);
+    renderConfirmButton(isAdmin);
+    photoBlock.appendChild(adminDiv);
+  }
+
+  if (word.votes > 0) {
+    const voteCount = document.createElement("p");
+    voteCount.innerHTML = `Votes: ${word.votes}`;
+    photoBlock.appendChild(voteCount);
+  }
+
+  const currentUsername = localStorage.getItem("username");
+  if (player.player !== currentUsername) {
+    const votes = await getUserVotes(currentUsername);
+    if (votes > 0) {
+      const votingDiv = document.createElement("div");
+      votingDiv.className = "voting";
+      const voteButton = document.createElement("button");
+      voteButton.className = "button";
+      voteButton.textContent = "✨ Star";
+      voteButton.addEventListener("click", () =>
+        handleVote(word.word, player.player, currentUsername)
+      );
+      votingDiv.appendChild(voteButton);
+      photoBlock.appendChild(votingDiv);
     }
+  }
 
-    if (player.player !== currentUser && votesLeft > 0) {
-        const votingDiv = createVotingDiv(word.word, player.player, currentUser);
-        photoBlock.appendChild(votingDiv);
-    }
-
-    return photoBlock;
-}
-
-function createVotingDiv(word, receivingPlayer, sendingPlayer) {
-    const votingDiv = document.createElement("div");
-    votingDiv.className = "voting";
-
-    const voteButton = document.createElement("button");
-    voteButton.className = "button";
-    voteButton.textContent = "✨ Star";
-
-    voteButton.addEventListener("click", () => handleVote(word, receivingPlayer, sendingPlayer));
-
-    votingDiv.appendChild(voteButton);
-
-    return votingDiv;
-}
-
-async function handleVote(word, receivingPlayer, sendingPlayer) {
-    const voteData = {
-        word: word,
-        receivingPlayer: receivingPlayer,
-        sendingPlayer: sendingPlayer
-    };
-
-    try {
-        const response = await fetch("/vote", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(voteData)
-        });
-
-        if (response.ok) {
-            // Optionally, update the UI to reflect the vote was successful
-            fetchPhotos(); // Refresh photos to update votes left and disable button if no votes left
-        } else {
-            console.error("Failed to submit vote");
-        }
-    } catch (error) {
-        console.error("Error submitting vote:", error);
-    }
+  return photoBlock;
 }
 
 function createAdminDiv(player, word, photoBlock) {
-    const adminDiv = document.createElement("div");
-    adminDiv.className = "admin";
+  const adminDiv = document.createElement("div");
+  adminDiv.className = "admin";
 
-    const declineButton = document.createElement("button");
-    declineButton.className = "decline-button";
-    declineButton.textContent = "Decline Photo";
+  const declineButton = document.createElement("button");
+  declineButton.className = "decline-button";
+  declineButton.textContent = "Decline Photo";
 
-    declineButton.addEventListener("click", () =>
-        handleDecline(player, word, photoBlock)
-    );
+  declineButton.addEventListener("click", () =>
+    handleDecline(player, word, photoBlock)
+  );
 
-    adminDiv.appendChild(declineButton);
+  adminDiv.appendChild(declineButton);
 
-    return adminDiv;
+  return adminDiv;
 }
 
 async function handleDecline(player, word, photoBlock) {
-    const declineData = {
-        playername: player.player,
-        word: word.word
-    };
+  const declineData = {
+    playername: player.player,
+    word: word.word,
+  };
 
-    try {
-        const response = await fetch("/declinePhoto", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(declineData)
-        });
+  try {
+    const response = await fetch("/declinePhoto", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(declineData),
+    });
 
-        if (response.ok) {
-            photoBlock.remove();
-        } else {
-            console.error("Failed to decline photo");
-        }
-    } catch (error) {
-        console.error("Error declining photo:", error);
+    if (response.ok) {
+      photoBlock.remove();
+    } else {
+      console.error("Failed to decline photo");
     }
+  } catch (error) {
+    console.error("Error declining photo:", error);
+  }
 }
 
-function renderPhotos(data, isAdmin, currentUser, votesLeft) {
-    const photoContainer = document.querySelector(".photoContainer");
-    photoContainer.innerHTML = "";
+async function handleVote(word, receivingPlayer, sendingPlayer) {
+  const voteData = {
+    word: word,
+    receivingPlayer: receivingPlayer,
+    sendingPlayer: sendingPlayer,
+  };
 
-    data.forEach((player) => {
-        player.words.forEach((word) => {
-            const photoBlock = createPhotoBlock(word, player, isAdmin, currentUser, votesLeft);
-            photoContainer.appendChild(photoBlock);
-        });
+  try {
+    const response = await fetch("/vote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(voteData),
     });
+
+    if (response.ok) {
+      fetchPhotos();
+    } else {
+      alert("Failed to cast vote");
+    }
+  } catch (error) {
+    console.error("Error casting vote:", error);
+    alert("Error casting vote");
+  }
+}
+
+async function renderPhotos(data, isAdmin) {
+  const photoContainer = document.querySelector(".photoContainer");
+  const existingBlocks = Array.from(photoContainer.children);
+
+  for (const player of data) {
+    for (const word of player.words) {
+      const existingBlock = existingBlocks.find(block => block.dataset.word === word.word && block.dataset.player === player.player);
+
+      if (existingBlock) {
+        updatePhotoBlock(existingBlock, word, player, isAdmin);
+      } else {
+        const photoBlock = await createPhotoBlock(word, player, isAdmin);
+        photoContainer.appendChild(photoBlock);
+      }
+    }
+  }
+}
+
+function updatePhotoBlock(block, word, player, isAdmin) {
+  const title = block.querySelector(".image-title");
+  title.textContent = word.word;
+
+  const img = block.querySelector(".confirm-photo");
+  img.src = `/${word.photo}`;
+  img.alt = word.word;
+
+  const voteCount = block.querySelector("p");
+  if (word.votes > 0) {
+    if (voteCount) {
+      voteCount.innerHTML = `Votes: ${word.votes}`;
+    } else {
+      const newVoteCount = document.createElement("p");
+      newVoteCount.innerHTML = `Votes: ${word.votes}`;
+      block.appendChild(newVoteCount);
+    }
+  } else if (voteCount) {
+    voteCount.remove();
+  }
+
+  if (isAdmin) {
+    if (!block.querySelector(".admin")) {
+      const adminDiv = createAdminDiv(player, word, block);
+      renderConfirmButton(isAdmin);
+      block.appendChild(adminDiv);
+    }
+  } else {
+    const adminDiv = block.querySelector(".admin");
+    if (adminDiv) {
+      adminDiv.remove();
+    }
+  }
 }
 
 function renderConfirmButton(isAdmin) {
-    if (!isAdmin) return;
+  if (!isAdmin) return;
 
-    const doneButton = document.getElementById("done");
-    const doneContainer = document.getElementById("doneContainer");
+  const doneButton = document.getElementById("done");
+  const doneContainer = document.getElementById("doneContainer");
 
-    doneContainer.style.display = "block";
+  doneContainer.style.display = "block";
 
-    doneButton.addEventListener("click", async () => {
-        try {
-            await fetch("/confirmReview", { method: "GET" });
-        } catch (error) {
-            console.error("Error confirming review:", error);
-        }
-    });
+  doneButton.addEventListener("click", async () => {
+    try {
+      await fetch("/confirmReview", { method: "GET" });
+    } catch (error) {
+      console.error("Error confirming review:", error);
+    }
+  });
 }

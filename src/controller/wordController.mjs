@@ -1,7 +1,7 @@
 import { wordlist } from "../utility/wordsList.mjs";
 import { changeGameStatus } from "../services/gameService.mjs";
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
-import { getWordsFromPlayer, VoteForPlayer, AddVoteToWord } from "../services/playerService.mjs";
+import { getWordsFromPlayer, VoteForPlayer, AddVoteToWord, getVoteAmount } from "../services/playerService.mjs";
 import { game } from "../models/game.mjs";
 import webSocketService from '../services/webSocketService.mjs';
 
@@ -81,7 +81,13 @@ export const voteForPlayer = async (req, res) => {
     return res.status(400).json({ message: "Could not vote" });
   }
 
-  AddVoteToWord(receivingPlayer, word);
+  AddVoteToWord(word, receivingPlayer);
 
   return res.status(200).json({ message: "Vote added" });
+}
+
+export const getMyVotes = async (req, res) => {
+  const player = req.params.player;
+
+  res.json(getVoteAmount(player));
 }

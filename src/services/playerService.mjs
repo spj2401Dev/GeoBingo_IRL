@@ -108,10 +108,12 @@ export function GetWinner() {
 
   players.forEach((p) => {
     let completedPhotos = p.words.filter((w) => w.completed === true);
-    let totalScore = completedPhotos.reduce((acc, word) => acc + word.votes, 0); // Thanks ChatGPT
+    let votesScore = completedPhotos.reduce((acc, word) => acc + word.votes, 0); // Thanks ChatGPT
+    let totalScore = completedPhotos + votesScore;
     rankList.push({
       player: p.name,
       completedPhotos: completedPhotos.length,
+      votesScore: totalScore,
       totalScore: totalScore,
       isTeam: p.team !== ""
     });
@@ -128,11 +130,17 @@ export function ResetPlayers() {
 
 function PlayerHasEnoughVotes(playername) {
   let player = players.find((p) => p.name === playername);
+  if (player == null) {
+    return false;
+  }
   return player.votes > 0;
 }
 
 function removeVote(playername) {
   let player = players.find((p) => p.name === playername);
+  if (player == null) {
+    return;
+  }
   player.votes -= 1;
 }
 
@@ -147,6 +155,20 @@ export function VoteForPlayer(playername) {
 
 export function AddVoteToWord(word, playername) {
   let player = players.find((p) => p.name === playername);
+  if (!player) {
+    return;
+  }
   let targetWord = player.words.find((w) => w.Label === word);
+  if (!targetWord) {
+    return;
+  }
   targetWord.votes += 1;
+}
+
+export function getVoteAmount(playername) {
+  let player = players.find((p) => p.name === playername);
+  if (!player) {
+    return 0;
+  }
+  return player.votes;
 }

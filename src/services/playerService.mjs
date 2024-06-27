@@ -107,22 +107,26 @@ export function GetWinner() {
   let rankList = [];
 
   players.forEach((p) => {
-    let completedPhotos = p.words.filter((w) => w.completed === true);
-    let votesScore = completedPhotos.reduce((acc, word) => acc + word.votes, 0); // Thanks ChatGPT
-    let totalScore = completedPhotos + votesScore;
-    rankList.push({
-      player: p.name,
-      completedPhotos: completedPhotos.length,
-      votesScore: totalScore,
-      totalScore: totalScore,
-      isTeam: p.team !== ""
-    });
+    if (!rankList.some((player) => player.player === p.name)) {
+      let completedPhotos = p.words.filter((w) => w.completed === true);
+      let votesScore = completedPhotos.reduce((acc, word) => acc + word.votes, 0);
+      let totalScore = completedPhotos.length + votesScore;
+
+      rankList.push({
+        player: p.name,
+        completedPhotos: completedPhotos.length,
+        votesScore: votesScore,
+        totalScore: totalScore,
+        isTeam: p.team !== ""
+      });
+    }
   });
 
   rankList.sort((a, b) => b.totalScore - a.totalScore);
 
   return rankList;
 }
+
 
 export function ResetPlayers() {
   players = [];

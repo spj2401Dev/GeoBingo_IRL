@@ -91,3 +91,21 @@ export const getMyVotes = async (req, res) => {
 
   res.json(getVoteAmount(player));
 }
+
+export const getWordsForSetup = async (req, res) => {
+  var amount = parseInt(req.query.amount, 10);
+
+  if (isNaN(amount) || amount <= 0) {
+    amount = 9;
+  }
+
+  var words = await getWords(amount, wordlist);
+
+  if (words.length < amount) {
+    return res.status(400).json({
+      message: "Not enough words in the wordlist",
+    });
+  }
+
+  res.json(words);
+};

@@ -3,12 +3,9 @@ import WebSocketClient from "/resources/webSocketService.mjs";
 document.addEventListener("DOMContentLoaded", () => {
   createPromptInputs();
   initializeWebSocket();
-  document
-    .getElementById("submit-button")
-    .addEventListener("click", submitPrompts);
-  document
-    .getElementById("perplayer")
-    .addEventListener("change", createPromptInputs);
+  document.getElementById("submit-button").addEventListener("click", submitPrompts);
+  document.getElementById("perplayer").addEventListener("change", createPromptInputs);
+  document.getElementById("word-suggestion").addEventListener("click", suggestWords); // Add this line
 });
 
 function initializeWebSocket() {
@@ -23,8 +20,7 @@ function initializeWebSocket() {
 
 function createPromptInputs() {
   const container = document.getElementById("prompt-container");
-  const numberOfPrompts =
-    parseInt(document.getElementById("perplayer").value, 10) || 9;
+  const numberOfPrompts = parseInt(document.getElementById("perplayer").value, 10) || 9;
   const currentInputs = container.getElementsByTagName("input").length;
   var time = document.getElementById("duration");
 
@@ -47,6 +43,30 @@ function createPromptInputs() {
   }
 }
 
+function suggestWords() {
+  const emptyPrompts = Array.from(document.getElementById("prompt-container").getElementsByTagName("input"))
+    .filter(input => input.value.trim() === "").length;
+
+  if (emptyPrompts > 0) {
+    fetch(`/words?amount=${emptyPrompts}`)
+      .then(response => response.json())
+      .then(data => {
+        const emptyInputs = Array.from(document.getElementById("prompt-container").getElementsByTagName("input"))
+          .filter(input => input.value.trim() === "");
+
+        for (let i = 0; i < data.length && i < emptyInputs.length; i++) {
+          emptyInputs[i].value = data[i];
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching suggested words:", error);
+        alert("Failed to fetch suggested words.");
+      });
+  } else {
+    alert("All prompt fields are already filled.");
+  }
+}
+
 function submitPrompts() {
   const promptContainer = document.getElementById("prompt-container");
   const promptInputs = promptContainer.getElementsByTagName("input");
@@ -60,19 +80,11 @@ function submitPrompts() {
   }
 
   if (time < 10) {
-    if (
-      !confirm(
-        "Are you sure you want to start the game with less than 10 minutes?"
-      )
-    ) {
+    if (!confirm("Are you sure you want to start the game with less than 10 minutes?")) {
       return;
     }
   } else if (time > 60) {
-    if (
-      !confirm(
-        "Are you sure you want to start the game with more than 60 minutes?"
-      )
-    ) {
+    if (!confirm("Are you sure you want to start the game with more than 60 minutes?")) {
       return;
     }
   }
@@ -108,17 +120,11 @@ function submitPrompts() {
     .then((response) => {
       if (response.status !== 200) {
         console.log(response);
-        throw new Error(
-          response.statusText +
-            ". You might left out more words than were defined in the word list."
-        );
+        throw new Error(response.statusText + ". You might left out more words than were defined in the word list.");
       }
       return response.json();
     })
     .then((data) => {
       window.location.reload();
     })
-    .catch((error) => {
-      alert("Error: " + error.message);
-    });
 }

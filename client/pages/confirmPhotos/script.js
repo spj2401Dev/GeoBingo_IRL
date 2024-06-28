@@ -1,15 +1,16 @@
-import WebSocketClient from '/resources/webSocketService.mjs';
+import WebSocketClient from "/resources/webSocketService.mjs";
 
-document.addEventListener("DOMContentLoaded", function() {
-    fetchPhotos();
-    initializeWebSocket();
-  });
+document.addEventListener("DOMContentLoaded", function () {
+  fetchPhotos();
+  initializeWebSocket();
+});
 
 async function fetchPhotos() {
   try {
     const data = await getAllPhotos();
     const isAdmin = JSON.parse(localStorage.getItem("isAdmin"));
 
+    getUserVotes(localStorage.getItem("username"));
     renderPhotos(data, isAdmin);
   } catch (error) {
     console.error("Error fetching photos:", error);
@@ -17,15 +18,15 @@ async function fetchPhotos() {
 }
 
 function initializeWebSocket() {
-    const wsClient = new WebSocketClient();
-    
-    wsClient.addMessageHandler((message) => {
-        if (message === 'Decline') {
-            fetchPhotos();
-        } else if (message === "Win") {
-            window.location.reload();
-        }
-    });
+  const wsClient = new WebSocketClient();
+
+  wsClient.addMessageHandler((message) => {
+    if (message === "Decline") {
+      fetchPhotos();
+    } else if (message === "Win") {
+      window.location.reload();
+    }
+  });
 }
 
 async function getAllPhotos() {
@@ -36,9 +37,23 @@ async function getAllPhotos() {
   return response.json();
 }
 
-function createPhotoBlock(word, player, isAdmin) {
+async function getUserVotes(username) {
+  const votesHeader = document.getElementById("votes-left");
+  const response = await fetch(`/vote/${username}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch user votes");
+  }
+  const votes = await response.json();
+  var parsedVotes = parseInt(votes, 10);
+  votesHeader.innerHTML = `Votes Left: ${parsedVotes}`;
+  return parsedVotes;
+}
+
+async function createPhotoBlock(word, player, isAdmin) {
   const photoBlock = document.createElement("div");
   photoBlock.className = "block card";
+  photoBlock.dataset.word = word.word;
+  photoBlock.dataset.player = player.player;
 
   const title = document.createElement("h2");
   title.className = "image-title";
@@ -56,6 +71,29 @@ function createPhotoBlock(word, player, isAdmin) {
     const adminDiv = createAdminDiv(player, word, photoBlock);
     renderConfirmButton(isAdmin);
     photoBlock.appendChild(adminDiv);
+  }
+
+  if (word.votes > 0) {
+    const voteCount = document.createElement("p");
+    voteCount.innerHTML = `Votes: ${word.votes}`;
+    photoBlock.appendChild(voteCount);
+  }
+
+  const currentUsername = localStorage.getItem("username");
+  if (player.player !== currentUsername) {
+    const votes = await getUserVotes(currentUsername);
+    if (votes > 0) {
+      const votingDiv = document.createElement("div");
+      votingDiv.className = "voting";
+      const voteButton = document.createElement("button");
+      voteButton.className = "button";
+      voteButton.textContent = "✨ Star";
+      voteButton.addEventListener("click", () =>
+        handleVote(word.word, player.player, currentUsername)
+      );
+      votingDiv.appendChild(voteButton);
+      photoBlock.appendChild(votingDiv);
+    }
   }
 
   return photoBlock;
@@ -103,16 +141,84 @@ async function handleDecline(player, word, photoBlock) {
   }
 }
 
-function renderPhotos(data, isAdmin) {
-  const photoContainer = document.querySelector(".photoContainer");
-  photoContainer.innerHTML = "";
+async function handleVote(word, receivingPlayer, sendingPlayer) {
+  const voteData = {
+    word: word,
+    receivingPlayer: receivingPlayer,
+    sendingPlayer: sendingPlayer,
+  };
 
-  data.forEach((player) => {
-    player.words.forEach((word) => {
-      const photoBlock = createPhotoBlock(word, player, isAdmin);
-      photoContainer.appendChild(photoBlock);
+  try {
+    const response = await fetch("/vote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(voteData),
     });
-  });
+
+    if (response.ok) {
+      fetchPhotos();
+    } else {
+      alert("Failed to cast vote");
+    }
+  } catch (error) {
+    console.error("Error casting vote:", error);
+    alert("Error casting vote");
+  }
+}
+
+async function renderPhotos(data, isAdmin) {
+  const photoContainer = document.querySelector(".photoContainer");
+  const existingBlocks = Array.from(photoContainer.children);
+
+  for (const player of data) {
+    for (const word of player.words) {
+      const existingBlock = existingBlocks.find(block => block.dataset.word === word.word && block.dataset.player === player.player);
+
+      if (existingBlock) {
+        updatePhotoBlock(existingBlock, word, player, isAdmin);
+      } else {
+        const photoBlock = await createPhotoBlock(word, player, isAdmin);
+        photoContainer.appendChild(photoBlock);
+      }
+    }
+  }
+}
+
+function updatePhotoBlock(block, word, player, isAdmin) {
+  const title = block.querySelector(".image-title");
+  title.textContent = word.word;
+
+  const img = block.querySelector(".confirm-photo");
+  img.src = `/${word.photo}`;
+  img.alt = word.word;
+
+  const voteCount = block.querySelector("p");
+  if (word.votes > 0) {
+    if (voteCount) {
+      voteCount.innerHTML = `Votes: ${word.votes}`;
+    } else {
+      const newVoteCount = document.createElement("p");
+      newVoteCount.innerHTML = `Votes: ${word.votes}`;
+      block.appendChild(newVoteCount);
+    }
+  } else if (voteCount) {
+    voteCount.remove();
+  }
+
+  if (isAdmin) {
+    if (!block.querySelector(".admin")) {
+      const adminDiv = createAdminDiv(player, word, block);
+      renderConfirmButton(isAdmin);
+      block.appendChild(adminDiv);
+    }
+  } else {
+    const adminDiv = block.querySelector(".admin");
+    if (adminDiv) {
+      adminDiv.remove();
+    }
+  }
 }
 
 function renderConfirmButton(isAdmin) {
@@ -127,7 +233,7 @@ function renderConfirmButton(isAdmin) {
     try {
       await fetch("/confirmReview", { method: "GET" });
     } catch (error) {
-
+      console.error("Error confirming review:", error);
     }
   });
 }

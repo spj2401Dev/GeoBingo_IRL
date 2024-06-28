@@ -1,7 +1,7 @@
 import { wordlist } from "../utility/wordsList.mjs";
 import { changeGameStatus } from "../services/gameService.mjs";
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
-import { getWordsFromPlayer } from "../services/playerService.mjs";
+import { getWordsFromPlayer, VoteForPlayer, AddVoteToWord, getVoteAmount } from "../services/playerService.mjs";
 import { game } from "../models/game.mjs";
 import webSocketService from '../services/webSocketService.mjs';
 
@@ -12,6 +12,7 @@ export const setWords = async (req, res) => {
   var words = req.body.words;
   wordsPerPlayer = req.body.wordsPerPlayer;
   var time = req.body.time; // Time in Minutes
+  var votes = req.body.votesPerPlayer;
 
   if (words.length + wordlist.length < wordsPerPlayer) {
     return res.status(400).json({
@@ -26,6 +27,7 @@ export const setWords = async (req, res) => {
 
   userWordList = words;
   game.time = time;
+  game.votesPerPlayer = votes;
 
   await changeGameStatus(GameStatus.STARTING)
   webSocketService.broadcast('Words');
@@ -60,4 +62,32 @@ export const getWordsForPlayer = async (req, res) => {
 
 export function resetWords() {
   userWordList = [];
+}
+
+export const voteForPlayer = async (req, res) => {
+  const { word, receivingPlayer, sendingPlayer } = req.body;
+
+  if (!word || !receivingPlayer || !sendingPlayer) {
+    return res.status(400).json({ message: "Missing parameters" });
+  }
+
+  if (receivingPlayer === sendingPlayer) {
+    return res.status(400).json({ message: "Cannot vote for yourself" });
+  }
+
+  const response = VoteForPlayer(sendingPlayer);
+
+  if (!response) {
+    return res.status(400).json({ message: "Could not vote" });
+  }
+
+  AddVoteToWord(word, receivingPlayer);
+
+  return res.status(200).json({ message: "Vote added" });
+}
+
+export const getMyVotes = async (req, res) => {
+  const player = req.params.player;
+
+  res.json(getVoteAmount(player));
 }

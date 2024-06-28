@@ -6,4 +6,5 @@ export const game = {
     time: 0,
     endTime: new Date(),
     words: [],
+    votesPerPlayer: 0,
 };

@@ -5,7 +5,7 @@ import { word as WordModel } from "../models/word.mjs";
 
 var players = game.players;
 
-export async function addPlayer(playerName, team) {
+export async function addPlayer(playerName, team, votesPerPlayer) {
   let player = Object.assign({}, PlayerModel);
   var words = await getWords();
 
@@ -15,11 +15,15 @@ export async function addPlayer(playerName, team) {
     player.team = team;
   }
 
+  if (votesPerPlayer) {
+    player.votes = votesPerPlayer;
+  }
+
   player.words = words.map((word, index) => {
     if (WordModel[index]) {
-      return { ...WordModel[index], Label: word, completed: false, photo: "" };
+      return { ...WordModel[index], Label: word, completed: false, photo: "", votes: 0};
     } else {
-      return { Label: word, completed: false, photo: "" };
+      return { Label: word, completed: false, photo: "", votes: 0};
     }
   });
 
@@ -103,17 +107,72 @@ export function GetWinner() {
   let rankList = [];
 
   players.forEach((p) => {
-    let completedPhotos = p.words.filter((w) => w.completed === true);
-    rankList.push({ player: p.name, completedPhotos: completedPhotos.length, isTeam: p.team !== ""});
+    if (!rankList.some((player) => player.player === p.name)) {
+      let completedPhotos = p.words.filter((w) => w.completed === true);
+      let votesScore = completedPhotos.reduce((acc, word) => acc + word.votes, 0);
+      let totalScore = completedPhotos.length + votesScore;
+
+      rankList.push({
+        player: p.name,
+        completedPhotos: completedPhotos.length,
+        votesScore: votesScore,
+        totalScore: totalScore,
+        isTeam: p.team !== ""
+      });
+    }
   });
 
-  rankList.sort((a, b) => {
-    return b.completedPhotos - a.completedPhotos;
-  });
+  rankList.sort((a, b) => b.totalScore - a.totalScore);
 
   return rankList;
 }
 
+
 export function ResetPlayers() {
   players = [];
+}
+
+function PlayerHasEnoughVotes(playername) {
+  let player = players.find((p) => p.name === playername);
+  if (player == null) {
+    return false;
+  }
+  return player.votes > 0;
+}
+
+function removeVote(playername) {
+  let player = players.find((p) => p.name === playername);
+  if (player == null) {
+    return;
+  }
+  player.votes -= 1;
+}
+
+export function VoteForPlayer(playername) {
+  if (PlayerHasEnoughVotes(playername)) {
+    removeVote(playername);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export function AddVoteToWord(word, playername) {
+  let player = players.find((p) => p.name === playername);
+  if (!player) {
+    return;
+  }
+  let targetWord = player.words.find((w) => w.Label === word);
+  if (!targetWord) {
+    return;
+  }
+  targetWord.votes += 1;
+}
+
+export function getVoteAmount(playername) {
+  let player = players.find((p) => p.name === playername);
+  if (!player) {
+    return 0;
+  }
+  return player.votes;
 }

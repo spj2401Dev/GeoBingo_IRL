@@ -2,6 +2,7 @@ import { getGameStatusService } from '../services/gameService.mjs';
 import { GameStatus } from '../enums/gameStatusEnum.mjs';
 import { addPlayer, GetPlayers } from '../services/playerService.mjs';
 import webSocketService from '../services/webSocketService.mjs';
+import { game } from '../models/game.mjs';
 
 export const PostPlayer = async (req, res) => {
 
@@ -13,9 +14,10 @@ export const PostPlayer = async (req, res) => {
     
     const username = req.body.username;
     const teamName = req.body.teamName;	
+    const votes = game.votesPerPlayer;
 
     var players = GetPlayers();
-    addPlayer(username, teamName);
+    addPlayer(username, teamName, votes);
     var isAdmin = false;
     if (players == null) {
         isAdmin = true;

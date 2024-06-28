@@ -15,13 +15,15 @@ fetch("/getWinner")
     let currentRank = 1;
 
     for (let i = 0; i < data.length; i++) {
-      if (i > 0 && data[i].completedPhotos !== data[i - 1].completedPhotos) {
+      if (i > 0 && data[i].totalScore !== data[i - 1].totalScore) {
         currentRank = i + 1;
       }
       winners.push({
         rank: currentRank,
         name: data[i].player,
         score: data[i].completedPhotos,
+        votes: data[i].votesScore,
+        totalScore : data[i].totalScore,
         isTeam: data[i].isTeam,
       });
     }
@@ -30,7 +32,6 @@ fetch("/getWinner")
     let allCardsHtml = "";
 
     winners.forEach((winner, index) => {
-      console.log(winner);
       if (index === 0) {
         if (winner.isTeam == true) {
           winner.name = "Team " + winner.name;
@@ -40,12 +41,12 @@ fetch("/getWinner")
     <div class="block card">
       <h1 class="header-text">🥇 First Place:</h1>
       <p><strong>${winner.name}</strong></p>
-      <p>With a Score of: ${winner.score} Points</p>
+      <p>With a Score of: ${winner.totalScore} Points</p>
     </div>`;
       } else {
         allCardsHtml += `
     <div class="block card">
-      <p>${winner.rank}. <strong>${winner.name}</strong> (${winner.score} Points)</p>
+      <p>${winner.rank}. <strong>${winner.name}</strong> (${winner.totalScore} Points)</p>
     </div>`;
       }
     });

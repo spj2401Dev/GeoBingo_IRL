@@ -3,7 +3,7 @@ import fileUpload from 'express-fileupload';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { PostPhoto, GetAllPhotos, DeclinePhotoController } from "./controller/photoController.mjs";
-import { setWords, getWordsForPlayer, voteForPlayer, getMyVotes } from "./controller/wordController.mjs";
+import { setWords, getWordsForPlayer, voteForPlayer, getMyVotes, getWordsForSetup } from "./controller/wordController.mjs";
 import { getGameStatus, startGameController, getWinnerController, ConfirmReview, resetGameController } from "./controller/gameController.mjs";
 import { GetPlayersApi, PostPlayer } from "./controller/playerController.mjs";
 import { GameStatus } from './enums/gameStatusEnum.mjs';
@@ -23,6 +23,7 @@ app.get("/getWinner", getWinnerController);
 app.get("/confirmReview", ConfirmReview);
 app.get("/resetGame", resetGameController);
 
+app.get("/words", getWordsForSetup)
 app.post("/words", setWords);
 app.post("/vote", voteForPlayer);
 app.get("/vote/:player", getMyVotes)

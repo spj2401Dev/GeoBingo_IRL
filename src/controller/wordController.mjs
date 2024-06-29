@@ -82,6 +82,7 @@ export const voteForPlayer = async (req, res) => {
   }
 
   AddVoteToWord(word, receivingPlayer);
+  webSocketService.broadcast('Votes');
 
   return res.status(200).json({ message: "Vote added" });
 }

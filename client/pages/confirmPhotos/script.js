@@ -21,7 +21,7 @@ function initializeWebSocket() {
   const wsClient = new WebSocketClient();
 
   wsClient.addMessageHandler((message) => {
-    if (message === "Decline") {
+    if (message === "Decline" || message === "Votes") {
       fetchPhotos();
     } else if (message === "Win") {
       window.location.reload();
@@ -172,18 +172,32 @@ async function renderPhotos(data, isAdmin) {
   const photoContainer = document.querySelector(".photoContainer");
   const existingBlocks = Array.from(photoContainer.children);
 
+  const currentWords = new Set(data.flatMap(player => player.words.map(word => `${word.word}-${player.player}`)));
+
   for (const player of data) {
     for (const word of player.words) {
+      const wordPlayerKey = `${word.word}-${player.player}`;
       const existingBlock = existingBlocks.find(block => block.dataset.word === word.word && block.dataset.player === player.player);
 
       if (existingBlock) {
         updatePhotoBlock(existingBlock, word, player, isAdmin);
+        const index = existingBlocks.indexOf(existingBlock);
+        if (index > -1) {
+          existingBlocks.splice(index, 1);
+        }
       } else {
         const photoBlock = await createPhotoBlock(word, player, isAdmin);
         photoContainer.appendChild(photoBlock);
       }
     }
   }
+
+  existingBlocks.forEach(block => {
+    const wordPlayerKey = `${block.dataset.word}-${block.dataset.player}`;
+    if (!currentWords.has(wordPlayerKey)) {
+      block.remove();
+    }
+  });
 }
 
 function updatePhotoBlock(block, word, player, isAdmin) {

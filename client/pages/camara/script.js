@@ -76,9 +76,11 @@ function handleFileUpload(player) {
         const file = event.target.files[0];
         if (!file) return;
 
+        const downscaledImage = await downscaleImage(file, 1920, 1080);
+
         var username = await localStorage.getItem('username');
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('file', downscaledImage);
         formData.append('playername', username);
         formData.append('word', player.Label);
 
@@ -99,6 +101,43 @@ function handleFileUpload(player) {
     };
 
     input.click();
+}
+
+async function downscaleImage(file, maxWidth, maxHeight) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth || height > maxHeight) {
+                if (width > height) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                } else {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+                resolve(blob);
+            }, 'image/jpeg', 0.8);
+        };
+
+        img.onerror = (error) => {
+            reject(error);
+        };
+    });
 }
 
 function RenderTime(endDate) {

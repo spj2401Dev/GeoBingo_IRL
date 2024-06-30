@@ -4,9 +4,18 @@ export const wordlist = [
     "Tier Straßenschild",
     "Bayern Flagge",
     "Schrott Auto",
-    "Kuh",
-    "Ziege",
     "\"Kompensieren\"", // Leo
     "Schön hier aber... Sticker", // Schön hier aber waren sie schon mal in Baden Württemberg
-    "Bier"
+    "2016",
+    "Dumme Schaufensterpuppe",
+    "Witziges Graffiti",
+    "Ranz Fahhrad",
+    "Snus auf Boden",
+    "Uralte Werbung",
+    "Unötiger Warnhinweis",
+    "\"Übermotivierter Garten\"",
+    "Lustiges Kennzeichen",
+    "Tier größer als Eichhörnchen",
+    "Rich Opi",
+    "DIY-Vogelhaus"
 ];

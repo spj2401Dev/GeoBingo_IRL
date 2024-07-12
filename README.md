@@ -34,7 +34,7 @@ After that just run the project using
 npm start
 ```
 
-or use nodemon, to automatically restart the server once you saved a file. (Often not recomended, because all the game data is stored in the runtime. Meaning restarting the server resets the game)
+or use nodemon, to automatically restart the server once you saved a file. (Often not recommended, because all the game data is stored in the runtime. Meaning restarting the server resets the game)
 
 ```
 npm run dev

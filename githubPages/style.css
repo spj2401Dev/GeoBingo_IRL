@@ -1,0 +1,127 @@
+body {
+    margin: 0px;
+    padding: 0px;
+    background-color: rgb(26, 26, 27);
+    font-family: 'Nunito', sans-serif !important;
+    color: white;
+}
+
+.header {
+    background-color: rgb(0, 0, 0);
+    height: 100px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.75);
+    background-image: url(resources/Header.jpg);
+    background-size: cover;
+    background-position: center;
+}
+
+.logo {
+    height: 100px;
+    margin: 0 auto;
+    display: block;
+    filter: invert(1);
+}
+
+.block {
+    padding: 10px;
+    color: white;
+    width: calc(100% - 30px);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.intro {
+    text-align: center;
+    margin-top: 25px;
+    max-width: 700px;
+    padding: 20px;
+}
+
+.intro-header {
+    font-size: 3rem;
+}
+
+.intro-description {
+    font-size: 1.2rem;
+}
+
+@media screen and (max-width: 600px) {
+    .intro-header {
+        font-size: 2.5rem;
+    }
+
+    .intro-description {
+        font-size: 1rem;
+    }
+}
+
+strong {
+    color: rgb(28, 236, 118);
+}
+
+.card {
+    border: 1px solid #313032;
+    border-radius: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29)
+}
+
+.skatetocat {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.card-header {
+    margin-top: 5px
+}
+
+button {
+    height: 39px;
+    width: calc(100% - 2px);
+    margin: 11px 0px 11px 0px;
+    border: 1px solid rgb(135, 135, 155);
+    background-color: transparent;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Nunito', sans-serif !important;
+    transition: all 0.2s;
+}
+
+button:hover {
+    border-radius: 1px;
+    transition: all 0.2s;
+}
+
+.features-container {
+    background-color: #2b2b2b;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.features-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.features-list li {
+    font-size: 18px;
+    line-height: 1.6;
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.features-list li span {
+    margin-right: 10px;
+    font-size: 24px;
+    width: 30px;
+}

@@ -70,13 +70,25 @@ strong {
     border-radius: 10px;
     margin-top: 15px;
     margin-bottom: 15px;
-    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29)
+    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.29);
+    box-sizing: border-box;
+}
+
+hr {
+    border: 1px solid #313032;
+    margin-top: -5px;
+    margin-bottom: 10px;
 }
 
 .skatetocat {
-    height: 100%;
     width: 100%;
     object-fit: cover;
+}
+
+.screenshot {
+    width: 100%;
+    object-fit: cover;
+    border-radius: 4px;
 }
 
 .card-header {
@@ -124,4 +136,13 @@ button:hover {
     margin-right: 10px;
     font-size: 24px;
     width: 30px;
+}
+
+.screenshot-container {
+    padding-left: 20px;
+    padding-right: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    flex-wrap: wrap;
 }

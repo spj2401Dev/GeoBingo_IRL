@@ -1,11 +1,11 @@
-# Geobingo
+# Geobingo IRL
 
 Geobingo is an open-source game where you and your friends are assigned prompts to find and photograph objects in the real world.
 
 > [!Tip]
 > This project is not related to [GeoBingo.io](https://github.com/s0er3n/GeoBingo.io), but check them out on Github. It is very similar to this repo, but in Google Street View, if going outside is not your thing.
 
-![341911509-0eaa7ef9-b24a-423d-84e2-2cf84628e70a(1)](https://github.com/user-attachments/assets/452337b7-57d9-4aaf-a175-7e3465c9f785)
+![GeoBingoLogo](https://github.com/user-attachments/assets/093db3b5-3e0f-43bd-8315-30d773b804e8)
 [Brushes from Brusheezy!](https://www.brusheezy.com)
 
 Selfhosting

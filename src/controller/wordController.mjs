@@ -13,6 +13,7 @@ export const setWords = async (req, res) => {
   wordsPerPlayer = req.body.wordsPerPlayer;
   var time = req.body.time; // Time in Minutes
   var votes = req.body.votesPerPlayer;
+  var penalty = req.body.penalty;
 
   if (words.length + wordlist.length < wordsPerPlayer) {
     return res.status(400).json({
@@ -28,6 +29,7 @@ export const setWords = async (req, res) => {
   userWordList = words;
   game.time = time;
   game.votesPerPlayer = votes;
+  game.removePoints = penalty;
 
   await changeGameStatus(GameStatus.STARTING)
   webSocketService.broadcast('Words');

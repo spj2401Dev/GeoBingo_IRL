@@ -3,10 +3,12 @@ import {
   AddImageToPlayer,
   GetFullPlayers,
   DeclinePhoto,
+  AddVoteToWord
 } from "../services/playerService.mjs";
 import path from "path";
 import webSocketService from "../services/webSocketService.mjs";
 import fs from 'fs';
+import { game } from "../models/game.mjs";
 
 const uploadDir = "data/photos/";
 
@@ -108,6 +110,10 @@ export const DeclinePhotoController = async (req, res) => {
   const playername = req.body.playername;
   const word = req.body.word;
   DeclinePhoto(playername, word);
+
+  if (game.removePoints) {
+    AddVoteToWord(word, playername, -1);
+  }
 
   webSocketService.broadcast("Decline");
 

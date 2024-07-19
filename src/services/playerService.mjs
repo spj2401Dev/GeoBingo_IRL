@@ -109,7 +109,7 @@ export function GetWinner() {
   players.forEach((p) => {
     if (!rankList.some((player) => player.player === p.name)) {
       let completedPhotos = p.words.filter((w) => w.completed === true);
-      let votesScore = completedPhotos.reduce((acc, word) => acc + word.votes, 0);
+      let votesScore = p.words.reduce((acc, word) => acc + word.votes, 0);
       let totalScore = completedPhotos.length + votesScore;
 
       rankList.push({
@@ -157,7 +157,7 @@ export function VoteForPlayer(playername) {
   }
 }
 
-export function AddVoteToWord(word, playername) {
+export function AddVoteToWord(word, playername, amount = 1) {
   let player = players.find((p) => p.name === playername);
   if (!player) {
     return;
@@ -166,7 +166,7 @@ export function AddVoteToWord(word, playername) {
   if (!targetWord) {
     return;
   }
-  targetWord.votes += 1;
+  targetWord.votes += amount;
 }
 
 export function getVoteAmount(playername) {

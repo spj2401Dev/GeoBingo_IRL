@@ -72,6 +72,7 @@ function submitPrompts() {
   const promptInputs = promptContainer.getElementsByTagName("input");
   const time = document.getElementById("duration").value;
   const votes = document.getElementById("votes").value;
+  const penalty = document.getElementById("penalty").checked;
   const prompts = [];
 
   if (time < 1) {
@@ -108,6 +109,7 @@ function submitPrompts() {
     wordsPerPlayer: wordsPerPlayer,
     time: time,
     votesPerPlayer: votes,
+    penalty: penalty,
   };
 
   fetch("/words", {

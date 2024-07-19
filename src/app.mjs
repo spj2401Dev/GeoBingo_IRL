@@ -8,7 +8,7 @@ import { getGameStatus, startGameController, getWinnerController, ConfirmReview,
 import { GetPlayersApi, PostPlayer } from "./controller/playerController.mjs";
 import { GameStatus } from './enums/gameStatusEnum.mjs';
 import { getGameStatusService } from './services/gameService.mjs';
-import config from '../config.json' assert { type: 'json' };
+import dotenv from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,6 +16,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(fileUpload());
 app.use(express.json());
+dotenv.config();
 
 app.get("/getGameStatus", getGameStatus);
 app.post("/startGame", startGameController);
@@ -38,7 +39,6 @@ app.get("/getWordsForPlayer/:player", getWordsForPlayer);
 
 app.get("/", async (req, res) => {
   var gameStatus = await getGameStatusService();
-  console.log(gameStatus);
   switch (gameStatus) {
     case GameStatus.NOT_STARTED:
       res.sendFile(path.join(__dirname, '../client/pages/setWords/index.html'));
@@ -64,6 +64,8 @@ app.get("/", async (req, res) => {
 app.use(express.static("client"));
 app.use(express.static("data/photos"));
 
-app.listen(config.Api.Port, config.Api.Ip, () => {
-  console.log("Api running on http://" + config.Api.Ip + ":" + config.Api.Port);
+const apiPort = process.env.API_PORT || 8000;
+
+app.listen(apiPort, () => {
+  console.log("Api running on port " + apiPort);
 });

@@ -24,7 +24,6 @@ export const startGameController = async (req, res) => {
 
     setTimeout(() => {
         webSocketService.broadcast('End');
-        console.log('Game ended');
         changeGameStatus(GameStatus.REVIEW);
     }, durationUntilEnd);
 

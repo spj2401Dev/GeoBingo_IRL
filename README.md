@@ -8,27 +8,26 @@ Geobingo is an open-source game where you and your friends are assigned prompts 
 ![GeoBingoLogo](https://github.com/user-attachments/assets/093db3b5-3e0f-43bd-8315-30d773b804e8)
 [Brushes from Brusheezy!](https://www.brusheezy.com)
 
-Selfhosting
+# Hosting for Production
+This will be using Docker via docker-compose.
+
+First you might want to edit the docker-compose.yml. In there you can configure the enviorment variabels, to define on which Ports the Server and Websocket
+run on.
+
+After that it's as easy as running
+
+```
+docker-compose up --build
+```
+
+# Selfhosting
 Download the Repo and open in up in your favorite IDE. Then install all the required packages.
 
 ```
 npm i
 ```
 
-After that create a `config.json` file in the root of the project, which should look like this:
-
-```json
-  {
-   "WebSocket":{
-      "Ip":"127.0.0.1",
-      "Port":8080
-   },
-   "Api":{
-      "Ip":"127.0.0.1",
-      "Port":8000
-   }
-}
-```
+After that make sure you edit the .env file. There is a .env.template. In this file you can configure on which ports the Server and Websocket run on.
 
 Like this its configured to run on your localhost. Then you just have to configure the Client to connect to the right WebSocket. Go to /client/resources/webSocketService.mjs. There you should see an IP adresse. Just change this to the same then you configured in the config.json
 After that just run the project using

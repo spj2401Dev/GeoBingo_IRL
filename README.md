@@ -1,4 +1,4 @@
-# Geobingo
+# Geobingo IRL
 
 Geobingo is an open-source game where you and your friends are assigned prompts to find and photograph objects in the real world.
 

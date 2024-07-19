@@ -1,5 +1,8 @@
 import { WebSocketServer } from "ws";
-import config from '../../config.json' assert { type: 'json' };
+import dotenv from 'dotenv';
+
+dotenv.config();
+const port = process.env.WEBSOCKET_PORT || 8000;
 
 class WebSocketService {
   constructor(port) {
@@ -15,7 +18,7 @@ class WebSocketService {
     });
 
     console.log(
-      `WebSocket server is running on ws://${config.WebSocket.Ip}:${this.wss.options.port}`
+      `WebSocket server is running on port ${this.wss.options.port}`
     );
   }
 
@@ -28,5 +31,5 @@ class WebSocketService {
   }
 }
 
-const webSocketService = new WebSocketService(config.WebSocket.Port);
+const webSocketService = new WebSocketService(port);
 export default webSocketService;

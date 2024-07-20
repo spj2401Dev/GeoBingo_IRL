@@ -3,6 +3,7 @@ import WebSocketClient from "/resources/webSocketService.mjs";
 document.addEventListener("DOMContentLoaded", function () {
   fetchPhotos();
   initializeWebSocket();
+  localStorage.removeItem("chatMessages"); // Clear chat messages after gameEnded page is exited, to make sure chat is empty when game starts again (This has issues, but it should be fine)
 });
 
 async function fetchPhotos() {

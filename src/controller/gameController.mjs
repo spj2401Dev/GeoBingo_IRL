@@ -24,7 +24,7 @@ export const startGameController = async (req, res) => {
 
     setTimeout(() => {
         webSocketService.broadcast('End');
-        changeGameStatus(GameStatus.REVIEW);
+        changeGameStatus(GameStatus.INTERMISSION);
     }, durationUntilEnd);
 
     return res.status(200).json({
@@ -54,3 +54,15 @@ export const resetGameController = async (req, res) => { // Should probably secu
         message: 'Game reset'
     });
 }
+
+export const intermissionOver = async (req, res) => {
+    if (game.status == GameStatus.INTERMISSION) {
+        return res.status(400).json({
+            message: 'Game is not in intermission'
+        });
+    }
+
+    webSocketService.broadcast('Reload');
+    changeGameStatus(GameStatus.REVIEW);
+    return res.status(200);
+};

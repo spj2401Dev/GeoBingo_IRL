@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { PostPhoto, GetAllPhotos, DeclinePhotoController } from "./controller/photoController.mjs";
 import { setWords, getWordsForPlayer, voteForPlayer, getMyVotes, getWordsForSetup } from "./controller/wordController.mjs";
-import { getGameStatus, startGameController, getWinnerController, ConfirmReview, resetGameController } from "./controller/gameController.mjs";
+import { getGameStatus, startGameController, getWinnerController, ConfirmReview, resetGameController, intermissionOver } from "./controller/gameController.mjs";
 import { GetPlayersApi, PostPlayer } from "./controller/playerController.mjs";
 import { GameStatus } from './enums/gameStatusEnum.mjs';
 import { getGameStatusService } from './services/gameService.mjs';
@@ -20,6 +20,7 @@ dotenv.config();
 
 app.get("/getGameStatus", getGameStatus);
 app.post("/startGame", startGameController);
+app.post("/intermissionOver", intermissionOver);
 app.get("/getWinner", getWinnerController);
 app.get("/confirmReview", ConfirmReview);
 app.get("/resetGame", resetGameController);
@@ -37,7 +38,7 @@ app.get("/getPlayers", GetPlayersApi)
 app.post("/addPlayer", PostPlayer);
 app.get("/getWordsForPlayer/:player", getWordsForPlayer);
 
-app.get("/", async (req, res) => {
+app.get("/", async (_, res) => {
   var gameStatus = await getGameStatusService();
   switch (gameStatus) {
     case GameStatus.NOT_STARTED:
@@ -48,6 +49,9 @@ app.get("/", async (req, res) => {
       break;
     case GameStatus.RUNNING:
       res.sendFile(path.join(__dirname, '../client/pages/camara/index.html'));
+      break;
+    case GameStatus.INTERMISSION:
+      res.sendFile(path.join(__dirname, '../client/pages/gameEnded/index.html'));
       break;
     case GameStatus.REVIEW:
       res.sendFile(path.join(__dirname, '../client/pages/confirmPhotos/index.html'));

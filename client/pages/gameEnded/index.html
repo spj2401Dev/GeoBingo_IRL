@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📍 GeoBingo</title>
+    <link rel="stylesheet" href="/pages/style.css">
+    <link rel="stylesheet" href="/../resources/font/Nunito.css">
+    <link rel="stylesheet" href="/pages/gameEnded/style.css">
+</head>
+<body>
+    <header class="header">
+        <img src="/resources/GeoBingoLogo.png" alt="Logo" class="logo">
+    </header>
+
+    <div class="block">
+        <h1 class="header-text">Return to the meeting point</h1>
+        <p>The game is over. Please return to the meeting point to decide which photos to delete and to vote for the best photos.</p>
+    </div>
+
+    <div class="block" id="admin" style="display: none;">
+        <button class="button" id="done">All players are here</button>
+    </div>
+
+    <div class="block">
+        <h2 class="header-text">Chat</h2>
+        <textarea id="messageInput" placeholder="Type a message..."></textarea>
+        <button id="sendButton" class="button">Send</button>
+    </div>
+
+    <div id="chatContainer"></div>
+
+    <script type="module" src="/pages/gameEnded/script.js"></script>
+</body>
+</html>

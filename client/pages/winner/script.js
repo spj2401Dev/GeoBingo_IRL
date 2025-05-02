@@ -11,20 +11,23 @@ if (localStorage.getItem("isAdmin") === "true") {
 fetch("/getWinner")
   .then((response) => response.json())
   .then((data) => {
+    const rankingsData = data.rankings || [];
+    const sendData = data.sendData || null;
+    
     const winners = [];
     let currentRank = 1;
 
-    for (let i = 0; i < data.length; i++) {
-      if (i > 0 && data[i].totalScore !== data[i - 1].totalScore) {
+    for (let i = 0; i < rankingsData.length; i++) {
+      if (i > 0 && rankingsData[i].totalScore !== rankingsData[i - 1].totalScore) {
         currentRank = i + 1;
       }
       winners.push({
         rank: currentRank,
-        name: data[i].player,
-        score: data[i].completedPhotos,
-        votes: data[i].votesScore,
-        totalScore : data[i].totalScore,
-        isTeam: data[i].isTeam,
+        name: rankingsData[i].player,
+        score: rankingsData[i].completedPhotos,
+        votes: rankingsData[i].votesScore,
+        totalScore: rankingsData[i].totalScore,
+        isTeam: rankingsData[i].isTeam,
       });
     }
 
@@ -52,5 +55,17 @@ fetch("/getWinner")
     });
 
     cardWrapper.innerHTML = allCardsHtml;
+    
+    if (sendData && sendData.success === true && sendData.downloadLink) {
+      const photoSection = document.createElement('div');
+      photoSection.className = 'block card';
+      photoSection.innerHTML = `
+        <h2 class="header-text">Photos</h2>
+        <p>All the Game Photos were uploaded to Send. You can access them here: </p>
+        <p><a href="${sendData.downloadLink}" target="_blank" class="download-link">${sendData.downloadLink}</a></p>
+      `;
+      
+      cardWrapper.parentNode.insertBefore(photoSection, cardWrapper.nextSibling);
+    }
   })
   .catch((error) => console.error("Error:", error));

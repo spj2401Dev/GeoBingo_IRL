@@ -4,6 +4,7 @@ import { ResetPlayers, GetAllImages } from "./playerService.mjs";
 import { resetWords } from "../controller/wordController.mjs"
 import { GameStatus } from "../enums/gameStatusEnum.mjs";
 import { uploadImageService } from "./uploadImagesService.mjs";
+import { deleteImagesService } from "./deleteImagesService.mjs";
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -50,8 +51,11 @@ export function getGameName() {
     return gameName;
 }
 
-export function resetGame() {
+export async function resetGame() {
     ResetPlayers();
     resetWords();
     changeGameStatus(GameStatus.NOT_STARTED);
+    if (process.env.DELETE_AFTER_GAME == "true") {
+        await deleteImagesService();
+    }
 }

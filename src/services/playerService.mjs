@@ -2,6 +2,7 @@ import { game } from "../models/game.mjs";
 import { getWords } from "../controller/wordController.mjs"; // Bad practice
 import { player as PlayerModel } from "../models/player.mjs";
 import { word as WordModel } from "../models/word.mjs";
+import { getSendLink } from "./gameService.mjs";
 
 var players = game.players;
 
@@ -21,9 +22,9 @@ export async function addPlayer(playerName, team, votesPerPlayer) {
 
   player.words = words.map((word, index) => {
     if (WordModel[index]) {
-      return { ...WordModel[index], Label: word, completed: false, photo: "", votes: 0};
+      return { ...WordModel[index], Label: word, completed: false, photo: "", votes: 0 };
     } else {
-      return { Label: word, completed: false, photo: "", votes: 0};
+      return { Label: word, completed: false, photo: "", votes: 0 };
     }
   });
 
@@ -124,9 +125,13 @@ export function GetWinner() {
 
   rankList.sort((a, b) => b.totalScore - a.totalScore);
 
-  return rankList;
+  const sendLink = getSendLink();
+  
+  return {
+    rankings: rankList,
+    sendData: sendLink
+  };
 }
-
 
 export function ResetPlayers() {
   players = [];
@@ -175,4 +180,22 @@ export function getVoteAmount(playername) {
     return 0;
   }
   return player.votes;
+}
+
+export function GetAllImages() {
+  let allImages = [];
+
+  players.forEach((p) => {
+    p.words.forEach((w) => {
+      if (w.photo) {
+        allImages.push({
+          player: p.name,
+          word: w.Label,
+          photo: w.photo
+        });
+      }
+    });
+  });
+
+  return allImages;
 }

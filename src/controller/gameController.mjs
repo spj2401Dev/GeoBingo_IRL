@@ -1,68 +1,51 @@
-import { changeGameStatus, resetGame } from '../services/gameService.mjs';
-import { GameStatus } from "../enums/gameStatusEnum.mjs";
-import webSocketService from '../services/webSocketService.mjs';
-import { game } from '../models/game.mjs';
-import { GetWinner } from '../services/playerService.mjs';
+import express from 'express';
+import { 
+  startGame, 
+  confirmReview, 
+  getWinner, 
+  resetGame, 
+  intermissionOver, 
+  getGameStatusService 
+} from '../services/gameService.mjs';
 
-export const getGameStatus = async (req, res) => {
-    return res.status(200).json({
-        status: getGameStatus()
-    });
-};
+const gameRouter = express.Router();
 
-export const startGameController = async (req, res) => {
-    var time = parseInt(game.time, 10);
-    var endTime = new Date();
-    endTime.setMinutes(endTime.getMinutes() + time);
-    game.endTime = endTime;
-    
-    changeGameStatus(GameStatus.RUNNING);
+gameRouter.get('/status', async (req, res) => {
+  const status = await getGameStatusService();
+  return res.status(200).json({ status });
+});
 
-    webSocketService.broadcast('Start');
+gameRouter.post('/start', async (req, res) => {
+  try {
+    await startGame();
+    return res.status(200).json({ message: 'Game started' });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
 
-    let durationUntilEnd = endTime.getTime() - Date.now();
+gameRouter.post('/confirmReview', async (req, res) => {
+  await confirmReview();
+  return res.status(200).json({ message: 'Game ended' });
+});
 
-    setTimeout(() => {
-        webSocketService.broadcast('End');
-        changeGameStatus(GameStatus.INTERMISSION);
-    }, durationUntilEnd);
+gameRouter.get('/winner', async (req, res) => {
+  const response = getWinner();
+  res.status(200).json(response);
+});
 
-    return res.status(200).json({
-        message: 'Game started'
-    });
-}
+gameRouter.post('/reset', async (req, res) => {
+  await resetGame();
+  return res.status(200).json({ message: 'Game reset' });
+});
 
-export const ConfirmReview = async (req, res) => {
-    changeGameStatus(GameStatus.ENDED);
+gameRouter.post('/intermissionOver', async (req, res) => {
+  try {
+    await intermissionOver();
+    return res.status(200).json({ message: 'Intermission over' });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+});
 
-    webSocketService.broadcast('Win');
-
-    return res.status(200).json({
-        message: 'Game ended'
-    });
-}
-
-export const getWinnerController = async (req, res) => {
-    var response = GetWinner();
-
-    res.status(200).json(response);
-}
-
-export const resetGameController = async (req, res) => { // Should probably secure this api endpoint somehow. 
-    resetGame();
-    return res.status(200).json({
-        message: 'Game reset'
-    });
-}
-
-export const intermissionOver = async (req, res) => {
-    if (game.status == GameStatus.INTERMISSION) {
-        return res.status(400).json({
-            message: 'Game is not in intermission'
-        });
-    }
-
-    webSocketService.broadcast('Reload');
-    changeGameStatus(GameStatus.REVIEW);
-    return res.status(200);
-};
+export default gameRouter;

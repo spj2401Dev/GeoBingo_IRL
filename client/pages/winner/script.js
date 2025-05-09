@@ -1,14 +1,14 @@
 if (localStorage.getItem("isAdmin") === "true") {
   document.getElementById("admin").style.display = "block";
   document.getElementById("reset").addEventListener("click", async () => {
-    await fetch("/resetGame", {
-      method: "GET",
+    await fetch("/game/reset", {
+      method: "POST",
     });
     window.location.href = "/";
   });
 }
 
-fetch("/getWinner")
+fetch("/game/winner")
   .then((response) => response.json())
   .then((data) => {
     const rankingsData = data.rankings || [];

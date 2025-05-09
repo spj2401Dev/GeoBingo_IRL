@@ -7,20 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initializeWebSocket() {
-    
-    wsClient.addMessageHandler((message) => {
-        if (message === 'End') {
-            window.location.reload();
-        } else {
-            loadPlayerData();
-        }
-    });
+    wsClient.on('GAME_ENDED', () => window.location.reload());
+    wsClient.on('VOTES_UPDATED', () => loadPlayerData());
+    wsClient.on('WORDS_UPDATED', () => loadPlayerData());
+    wsClient.on('PHOTO_DECLINED', () => loadPlayerData());
 }
 
 async function loadPlayerData() {
     try {
         var player = await localStorage.getItem('username');
-        const response = await fetch('/getWordsForPlayer/' + player);
+        const response = await fetch('/word/player/' + player);
         const data = await response.json();
 
         data.words.sort((a, b) => a.completed - b.completed);

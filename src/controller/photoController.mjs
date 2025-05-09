@@ -1,121 +1,26 @@
-import {
-  CheckIfPlayerExists,
-  AddImageToPlayer,
-  GetFullPlayers,
-  DeclinePhoto,
-  AddVoteToWord
-} from "../services/playerService.mjs";
-import path from "path";
-import webSocketService from "../services/webSocketService.mjs";
-import fs from 'fs';
-import { game } from "../models/game.mjs";
+import express from 'express';
+import { postPhotoService, getPhotoService, getAllPhotosService, declinePhotoService } from '../services/photoService.mjs';
 
-const uploadDir = "data/photos/";
+const photoRouter = express.Router();
 
-export const PostPhoto = async (req, res) => {
-  try {
-    if (!fs.existsSync(uploadDir)){
-      fs.mkdirSync(uploadDir, { recursive: true });
-      console.info("Created " + uploadDir + " folder!")
-    }
+photoRouter.post('/', async (req, res) => {
+  const result = await postPhotoService(req);
+  res.status(result.status).json(result.data);
+});
 
-    const word = req.body.word;
+photoRouter.get('/', async (req, res) => {
+  const result = await getPhotoService(req);
+  res.status(result.status).json(result.data);
+});
 
-    if (!req.files || Object.keys(req.files).length === 0) {
-      res.status(400).send("No files were uploaded.");
-      return;
-    }
+photoRouter.get('/all', async (req, res) => {
+  const result = await getAllPhotosService();
+  res.status(result.status).json(result.data);
+});
 
-    let uploadedFile = req.files.file;
-    let sanitizedWord = word.replace(/[^a-zA-Z0-9-_]/g, "_");
-    let filename = sanitizedWord + Date.now() + ".jpg";
+photoRouter.post('/decline', async (req, res) => {
+  const result = await declinePhotoService(req);
+  res.status(result.status).json(result.data);
+});
 
-    const savePath = path.join(uploadDir, filename);
-
-    uploadedFile.mv(savePath, (err) => {
-      if (err) {
-        console.log(err);
-      }
-    });
-
-    const playername = req.body.playername;
-    AddImageToPlayer(filename, playername, word);
-
-    res.send({ message: "File uploaded!", filename: filename });
-  } catch (err) {
-    res.status(500).send("Error uploading file.");
-  }
-};
-
-export const GetPhoto = async (req, res) => {
-  const playername = req.body.playername;
-  const word = req.body.word;
-
-  if (!CheckIfPlayerExists(playername)) {
-    return res.status(400).json({
-      message: "Player does not exist",
-    });
-  }
-
-  let photo = "";
-
-  players.forEach((p) => {
-    if (p.name == playername) {
-      p.words.forEach((w) => {
-        if (w.label == word) {
-          photo = w.photo;
-        }
-      });
-    }
-  });
-
-  return res.status(200).json({
-    photo: photo,
-  });
-};
-
-
-export const GetAllPhotos = async (req, res) => {
-  const players = GetFullPlayers();
-
-  if (players == null) {
-    return res.status(204).json("No players found");
-  }
-
-  let response = [];
-
-  players.forEach((player) => {
-    let playerResponse = {
-      player: player.name,
-      words: [],
-    };
-
-    player.words.forEach((word) => {
-      if (word.photo) {
-        playerResponse.words.push({
-          word: word.Label,
-          photo: word.photo,
-          votes: word.votes,
-        });
-      }
-    });
-
-    response.push(playerResponse);
-  });
-
-  return res.status(200).json(response);
-};
-
-export const DeclinePhotoController = async (req, res) => {
-  const playername = req.body.playername;
-  const word = req.body.word;
-  DeclinePhoto(playername, word);
-
-  if (game.removePoints) {
-    AddVoteToWord(word, playername, -1);
-  }
-
-  webSocketService.broadcast("Decline");
-
-  res.status(200).send("Photo declined.");
-}
+export default photoRouter;

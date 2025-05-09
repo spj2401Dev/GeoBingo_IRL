@@ -49,14 +49,19 @@ export async function uploadImageService(imagesData) {
       method: 'POST',
       body: formData,
     });
+
+    console.log(`Upload response status: ${response.status}`);
+    console.log(`Upload response headers: ${JSON.stringify(response.headers.raw())}`);
+    const responseBody = await response.text();
+    console.log(`Upload response body: ${responseBody}`);
+    console.log(`Upload URL: ${uploadUrl}`);
     
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Upload failed with status ${response.status}: ${errorText}`);
+      console.error(`Upload failed with status ${response.status}: ${responseBody}`);
       return { success: false, error: `Upload failed with status ${response.status}` };
     }
     
-    const result = await response.json();
+    const result = JSON.parse(responseBody);
     return result;
   } catch (error) {
     console.error('Error uploading images:', error);

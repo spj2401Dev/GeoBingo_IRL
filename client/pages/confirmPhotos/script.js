@@ -20,18 +20,13 @@ async function fetchPhotos() {
 
 function initializeWebSocket() {
   const wsClient = new WebSocketClient();
-
-  wsClient.addMessageHandler((message) => {
-    if (message === "Decline" || message === "Votes") {
-      fetchPhotos();
-    } else if (message === "Win") {
-      window.location.reload();
-    }
-  });
+  wsClient.on('PHOTO_DECLINED', fetchPhotos);
+  wsClient.on('VOTES_UPDATED', fetchPhotos);
+  wsClient.on('GAME_WIN', () => window.location.reload());
 }
 
 async function getAllPhotos() {
-  const response = await fetch("/allPhotos");
+  const response = await fetch("/photo/all");
   if (!response.ok) {
     throw new Error("Failed to fetch photos");
   }
@@ -40,12 +35,12 @@ async function getAllPhotos() {
 
 async function getUserVotes(username) {
   const votesHeader = document.getElementById("votes-left");
-  const response = await fetch(`/vote/${username}`);
+  const response = await fetch(`/word/votes/${username}`);
   if (!response.ok) {
     throw new Error("Failed to fetch user votes");
   }
   const votes = await response.json();
-  var parsedVotes = parseInt(votes, 10);
+  var parsedVotes = parseInt(votes.votes, 10);
   votesHeader.innerHTML = `Votes Left: ${parsedVotes}`;
   return parsedVotes;
 }
@@ -124,7 +119,7 @@ async function handleDecline(player, word, photoBlock) {
   };
 
   try {
-    const response = await fetch("/declinePhoto", {
+    const response = await fetch("/photo/decline", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -150,7 +145,7 @@ async function handleVote(word, receivingPlayer, sendingPlayer) {
   };
 
   try {
-    const response = await fetch("/vote", {
+    const response = await fetch("/word/vote", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -246,7 +241,7 @@ function renderConfirmButton(isAdmin) {
 
   doneButton.addEventListener("click", async () => {
     try {
-      await fetch("/confirmReview", { method: "GET" });
+      await fetch("/game/confirmReview", { method: "POST" });
     } catch (error) {
       console.error("Error confirming review:", error);
     }

@@ -1,114 +1,37 @@
-import { wordlist } from "../utility/wordsList.mjs";
-import { changeGameStatus } from "../services/gameService.mjs";
-import { GameStatus } from "../enums/gameStatusEnum.mjs";
-import { getWordsFromPlayer, VoteForPlayer, AddVoteToWord, getVoteAmount } from "../services/playerService.mjs";
-import { game } from "../models/game.mjs";
-import webSocketService from '../services/webSocketService.mjs';
+import express from 'express';
+import {
+  setWordsService,
+  getWordsForPlayerService,
+  voteForPlayerService,
+  getMyVotesService,
+  getWordsForSetupService
+} from '../services/wordService.mjs';
 
-var wordsPerPlayer = 9;
-var userWordList = [];
+const wordRouter = express.Router();
 
-export const setWords = async (req, res) => {
-  var words = req.body.words;
-  wordsPerPlayer = req.body.wordsPerPlayer;
-  var time = req.body.time; // Time in Minutes
-  var votes = req.body.votesPerPlayer;
-  var penalty = req.body.penalty;
+wordRouter.post('/set', async (req, res) => {
+  const result = await setWordsService(req);
+  res.status(result.status).json(result.data);
+});
 
-  if (words.length + wordlist.length < wordsPerPlayer) {
-    return res.status(400).json({
-      message: "Not enough words provided",
-    });
-  }
+wordRouter.get('/player/:player', async (req, res) => {
+  const result = await getWordsForPlayerService(req);
+  res.status(result.status).json(result.data);
+});
 
-  if (words.length <= wordsPerPlayer) {
-    const wordsNeeded = wordsPerPlayer - words.length;
-    words = words.concat(await getWords(wordsNeeded, wordlist));
-  }
+wordRouter.post('/vote', async (req, res) => {
+  const result = await voteForPlayerService(req);
+  res.status(result.status).json(result.data);
+});
 
-  userWordList = words;
-  game.time = time;
-  game.votesPerPlayer = votes;
-  game.removePoints = penalty;
+wordRouter.get('/votes/:player', async (req, res) => {
+  const result = await getMyVotesService(req);
+  res.status(result.status).json(result.data);
+});
 
-  await changeGameStatus(GameStatus.STARTING)
-  webSocketService.broadcast('Words');
+wordRouter.get('/setup', async (req, res) => {
+  const result = await getWordsForSetupService(req);
+  res.status(result.status).json(result.data);
+});
 
-  return res.status(200).json({
-    message: userWordList,
-  });
-};
-
-export const getWords = async (numberOfWords = wordsPerPlayer, wordList = userWordList) => {
-  const randomWords = wordList.sort(() => Math.random() - 0.5);
-  return randomWords.slice(0, numberOfWords);
-};
-
-export const getWordsForPlayer = async (req, res) => {
-  const playerName = req.params.player;
-  const words = getWordsFromPlayer(playerName);
-
-  if (words === null) {
-    return res.status(400).json({
-      message: "Player not found",
-    });
-  }
-
-  var response = {
-    words: words,
-    time: game.endTime,
-  };
-
-  return res.status(200).json(response);
-};
-
-export function resetWords() {
-  userWordList = [];
-}
-
-export const voteForPlayer = async (req, res) => {
-  const { word, receivingPlayer, sendingPlayer } = req.body;
-
-  if (!word || !receivingPlayer || !sendingPlayer) {
-    return res.status(400).json({ message: "Missing parameters" });
-  }
-
-  if (receivingPlayer === sendingPlayer) {
-    return res.status(400).json({ message: "Cannot vote for yourself" });
-  }
-
-  const response = VoteForPlayer(sendingPlayer);
-
-  if (!response) {
-    return res.status(400).json({ message: "Could not vote" });
-  }
-
-  AddVoteToWord(word, receivingPlayer);
-  webSocketService.broadcast('Votes');
-
-  return res.status(200).json({ message: "Vote added" });
-}
-
-export const getMyVotes = async (req, res) => {
-  const player = req.params.player;
-
-  res.json(getVoteAmount(player));
-}
-
-export const getWordsForSetup = async (req, res) => {
-  var amount = parseInt(req.query.amount, 10);
-
-  if (isNaN(amount) || amount <= 0) {
-    amount = 9;
-  }
-
-  var words = await getWords(amount, wordlist);
-
-  if (words.length < amount) {
-    return res.status(400).json({
-      message: "Not enough words in the wordlist",
-    });
-  }
-
-  res.json(words);
-};
+export default wordRouter;

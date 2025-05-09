@@ -32,24 +32,21 @@ function loadMessages() {
 
 window.addEventListener("load", loadMessages);
 
-wsClient.addMessageHandler((message) => {
-  if (message == "Reload") {
-    window.location.reload();
-    return;
-  }
+wsClient.on('GAME_RELOAD', () => {
+  window.location.reload();
+});
 
-  const parsedMessage = JSON.parse(message);
-  addMessage(parsedMessage.username, parsedMessage.text);
-  storeMessage(parsedMessage.username, parsedMessage.text);
+wsClient.on('CHAT_MESSAGE', (data) => {
+  addMessage(data.username, data.text);
+  storeMessage(data.username, data.text);
 });
 
 sendButton.addEventListener("click", async () => {
   const message = messageInput.value.trim();
   if (message) {
     const username = (await localStorage.getItem("username")) || "Anonymous";
-    const messageObject = { username, text: message };
+    const messageObject = { event: 'CHAT_MESSAGE', data: { username, text: message } };
     await wsClient.sendMessage(JSON.stringify(messageObject));
-    // Websocket sends message to all clients, so we need to add the message to our own chat
     messageInput.value = "";
   }
 });
@@ -63,7 +60,7 @@ if (isAdmin) {
 }
 
 adminButton.addEventListener("click", async () => {
-  fetch("/intermissionOver", {
+  fetch("/game/intermissionOver", {
     method: "POST",
   })
 });

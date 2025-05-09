@@ -1,41 +1,24 @@
-import { getGameStatusService } from '../services/gameService.mjs';
-import { GameStatus } from '../enums/gameStatusEnum.mjs';
-import { addPlayer, GetPlayers } from '../services/playerService.mjs';
-import webSocketService from '../services/webSocketService.mjs';
-import { game } from '../models/game.mjs';
+import express from 'express';
+import { addPlayerService, getPlayersService } from '../services/playerService.mjs';
 
-export const PostPlayer = async (req, res) => {
+const playerRouter = express.Router();
 
-   if (getGameStatusService == GameStatus.STARTING) {
-        return res.status(400).json({
-            message: 'You cannot join the game at this time. Please wait for the game to start.'
-        });
-    }
-    
-    const username = req.body.username;
-    const teamName = req.body.teamName;	
-    const votes = game.votesPerPlayer;
+playerRouter.post('/', async (req, res) => {
+  try {
+    const { username, teamName, votes } = req.body;
+    const result = await addPlayerService(username, teamName, votes);
+    res.status(result.status).json(result.data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
-    var players = GetPlayers();
-    addPlayer(username, teamName, votes);
-    var isAdmin = false;
-    if (players == null) {
-        isAdmin = true;
-    }
+playerRouter.get('/', async (req, res) => {
+  const players = getPlayersService();
+  if (!players) {
+    return res.status(204).json({ message: 'No players found' });
+  }
+  res.status(200).json(players);
+});
 
-    webSocketService.broadcast('Player refresh')
-
-    return res.status(200).json({
-        admin: isAdmin,
-    });
-};
-
-export const GetPlayersApi = async (req, res) => {
-    const players = GetPlayers();
-
-    if (players == null) {
-        return res.status(204).json("No players found");
-    }
-
-    return res.status(200).json(players);
-};
+export default playerRouter;

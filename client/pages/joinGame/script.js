@@ -23,14 +23,8 @@ function initializeQRCode() {
 
 function initializeWebSocket() {
     const wsClient = new WebSocketClient();
-    
-    wsClient.addMessageHandler((message) => {
-        if (message === 'Player refresh') {
-            fetchPlayers();
-        } else if (message === "Start") {
-            window.location.reload();
-        }
-    });
+    wsClient.on('PLAYER_REFRESH', fetchPlayers);
+    wsClient.on('GAME_STARTED', () => window.location.reload());
 }
 
 function setupJoinButton() {
@@ -77,7 +71,9 @@ async function fetchPlayers() {
         const playersList = document.getElementById('players');
         playersList.innerHTML = '';
         
-        const response = await fetch('/getPlayers');
+        const response = await fetch('/player', {
+            method: 'GET'
+        });
         
         if (response.status === 200) {
             const players = await response.json();
@@ -98,7 +94,7 @@ async function fetchPlayers() {
 
 async function addPlayer(username, teamName = null) {
     try {
-        const response = await fetch('/addPlayer', {
+        const response = await fetch('/player', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -129,7 +125,7 @@ async function startGame() {
     }
 
     try {
-        const response = await fetch('/startGame', {
+        const response = await fetch('/game/start', {
             method: 'POST'
         });
 

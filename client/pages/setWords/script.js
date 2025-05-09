@@ -5,16 +5,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeWebSocket();
   document.getElementById("submit-button").addEventListener("click", submitPrompts);
   document.getElementById("perplayer").addEventListener("change", createPromptInputs);
-  document.getElementById("word-suggestion").addEventListener("click", suggestWords); // Add this line
+  document.getElementById("word-suggestion").addEventListener("click", suggestWords);
 });
 
 function initializeWebSocket() {
   const wsClient = new WebSocketClient();
-
-  wsClient.addMessageHandler((message) => {
-    if (message === "Words") {
-      window.location.reload();
-    }
+  wsClient.on('WORDS_UPDATED', () => {
+    window.location.reload();
   });
 }
 
@@ -48,14 +45,14 @@ function suggestWords() {
     .filter(input => input.value.trim() === "").length;
 
   if (emptyPrompts > 0) {
-    fetch(`/words?amount=${emptyPrompts}`)
+    fetch(`/word/setup?amount=${emptyPrompts}`)
       .then(response => response.json())
       .then(data => {
         const emptyInputs = Array.from(document.getElementById("prompt-container").getElementsByTagName("input"))
           .filter(input => input.value.trim() === "");
 
-        for (let i = 0; i < data.length && i < emptyInputs.length; i++) {
-          emptyInputs[i].value = data[i];
+        for (let i = 0; i < data.words.length && i < emptyInputs.length; i++) {
+          emptyInputs[i].value = data.words[i];
         }
       })
       .catch(error => {
@@ -112,7 +109,7 @@ function submitPrompts() {
     penalty: penalty,
   };
 
-  fetch("/words", {
+  fetch("/word/set", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

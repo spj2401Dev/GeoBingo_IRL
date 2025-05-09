@@ -1,8 +1,8 @@
 class WebSocketClient {
-    constructor(url = "ws://127.0.0.1:8080", reconnectInterval = 5000) { // Edit IP here!
+    constructor(url = "ws://127.0.0.1:3001", reconnectInterval = 5000) {
         this.url = url;
-        this.reconnectInterval = reconnectInterval; // ms
-        this.messageHandlers = [];
+        this.reconnectInterval = reconnectInterval;
+        this.eventHandlers = {};
         this.connect();
     }
 
@@ -10,9 +10,16 @@ class WebSocketClient {
         this.ws = new WebSocket(this.url);
 
         this.ws.onmessage = (event) => {
-            const message = event.data;
-            console.log('Received:', message);
-            this.handleMessage(message);
+            let parsed;
+            try {
+                parsed = JSON.parse(event.data);
+            } catch {
+                console.warn('Received non-JSON message:', event.data);
+                return;
+            }
+            if (parsed && parsed.event) {
+                this.handleEvent(parsed.event, parsed.data);
+            }
         };
 
         this.ws.onclose = () => {
@@ -26,12 +33,17 @@ class WebSocketClient {
         };
     }
 
-    handleMessage(message) {
-        this.messageHandlers.forEach(handler => handler(message));
+    handleEvent(event, data) {
+        if (this.eventHandlers[event]) {
+            this.eventHandlers[event].forEach(handler => handler(data));
+        }
     }
 
-    addMessageHandler(handler) {
-        this.messageHandlers.push(handler);
+    on(event, handler) {
+        if (!this.eventHandlers[event]) {
+            this.eventHandlers[event] = [];
+        }
+        this.eventHandlers[event].push(handler);
     }
 
     sendMessage(message) {

@@ -1,99 +1,162 @@
-import { GameStatus } from "../enums/gameStatusEnum.mjs";
-import { game } from "../models/game.mjs";
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { GameStatus } from '../enums/gameStatusEnum.mjs';
+import { createGame, requireGame, serializeGame } from './gameStore.mjs';
+import { setGameWordsFromPayload } from './wordService.mjs';
+import { deleteImagesForGameService } from './deleteImagesService.mjs';
 import webSocketService from './webSocketService.mjs';
-import { GetWinner, ResetPlayers, GetAllImages } from './playerService.mjs';
-import { resetWordsService as resetWords } from '../services/wordService.mjs';
-import { uploadImageService } from './uploadImagesService.mjs';
-import { deleteImagesService } from './deleteImagesService.mjs';
-import dotenv from 'dotenv';
-import { wordlist } from '../utility/wordsList.mjs';
-dotenv.config();
 
-let gameStatus = game.status;
-let sendResponse = null;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..', '..');
 
-export async function startGame() {
-  const time = parseInt(game.time, 10);
+export async function createGameService(payload, baseUrl) {
+  const game = createGame();
+  await setGameWordsFromPayload(game, payload, { requireNotRunning: false });
+  const joinPath = `/g/${encodeURIComponent(game.id)}`;
+
+  return {
+    game: serializeGame(game),
+    gameId: game.id,
+    adminToken: game.adminToken,
+    joinUrl: baseUrl ? new URL(joinPath, baseUrl).toString() : joinPath
+  };
+}
+
+export function getGameStatusService(gameId) {
+  return requireGame(gameId).status;
+}
+
+export function assertAdmin(game, token) {
+  if (!game.isAdmin(token)) {
+    const error = new Error('Only the game creator can do this');
+    error.status = 403;
+    throw error;
+  }
+}
+
+export async function startGame(gameId, adminToken) {
+  const game = requireGame(gameId);
+  assertAdmin(game, adminToken);
+
+  if (game.status !== GameStatus.STARTING) {
+    const error = new Error('Game can only be started from the lobby');
+    error.status = 400;
+    throw error;
+  }
+
+  if (game.players.length === 0) {
+    const error = new Error('At least one player must join before starting');
+    error.status = 400;
+    throw error;
+  }
+
+  const time = Number.parseInt(game.time, 10);
+  if (!Number.isFinite(time) || time <= 0) {
+    const error = new Error('Game duration is invalid');
+    error.status = 400;
+    throw error;
+  }
+
   const endTime = new Date();
   endTime.setMinutes(endTime.getMinutes() + time);
   game.endTime = endTime;
-  await changeGameStatus(GameStatus.RUNNING);
-  webSocketService.sendToAll('GAME_STARTED', null);
-  const durationUntilEnd = endTime.getTime() - Date.now();
-  setTimeout(async () => {
-    webSocketService.sendToAll('GAME_ENDED', null);
-    await changeGameStatus(GameStatus.INTERMISSION);
+  changeGameStatus(game, GameStatus.RUNNING);
+  webSocketService.sendToGame(game.id, 'GAME_STARTED', null);
+
+  const durationUntilEnd = Math.max(endTime.getTime() - Date.now(), 0);
+  game.clearTimer();
+  game.timer = setTimeout(() => {
+    webSocketService.sendToGame(game.id, 'GAME_ENDED', null);
+    changeGameStatus(game, GameStatus.INTERMISSION);
   }, durationUntilEnd);
 }
 
-export async function confirmReview() {
-  await changeGameStatus(GameStatus.ENDED);
-  webSocketService.sendToAll('GAME_WIN', null);
-}
+export async function confirmReview(gameId, adminToken) {
+  const game = requireGame(gameId);
+  assertAdmin(game, adminToken);
 
-export function getWinner() {
-  return GetWinner();
-}
-
-export async function resetGame() {
-  ResetPlayers();
-  resetWords();
-  await changeGameStatus(GameStatus.NOT_STARTED);
-  if (process.env.DELETE_AFTER_GAME == "true") {
-    await deleteImagesService();
+  if (game.status !== GameStatus.REVIEW) {
+    const error = new Error('Game is not in review');
+    error.status = 400;
+    throw error;
   }
+
+  changeGameStatus(game, GameStatus.ENDED);
+  webSocketService.sendToGame(game.id, 'GAME_WIN', null);
 }
 
-export async function intermissionOver() {
-  // Only allow transition if game.status is RUNNING (i.e., intermission can only be triggered after game run)
-  if (game.status !== GameStatus.INTERMISSION) {
-    throw new Error('Game is not in intermission');
-  }
-  webSocketService.sendToAll('GAME_RELOAD', null);
-  await changeGameStatus(GameStatus.REVIEW);
-}
+export function getWinner(gameId) {
+  const game = requireGame(gameId);
+  const groups = new Map();
 
-export async function changeGameStatus(status) {
-  gameStatus = status;
-  game.status = status;
-  if (status === GameStatus.INTERMISSION) {
-    if (process.env.UPLOAD_TO_SEND_INSTANCE === "true") {
-      sendResponse = "UPLOADING";
-      sendResponse = await uploadImageService(GetAllImages());
+  for (const player of game.players) {
+    const isTeam = Boolean(player.teamName);
+    const key = isTeam ? `team:${player.teamName.toLowerCase()}` : `player:${player.id}`;
+    const displayName = isTeam ? player.teamName : player.name;
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        id: key,
+        name: displayName,
+        isTeam,
+        members: [],
+        completedPhotos: 0,
+        votesScore: 0,
+        penaltyPoints: 0,
+        totalScore: 0
+      });
     }
+
+    const group = groups.get(key);
+    const completedPhotos = player.words.filter((word) => word.completed).length;
+    const votesScore = player.words.reduce((acc, word) => acc + word.votes, 0);
+
+    group.members.push(player.name);
+    group.completedPhotos += completedPhotos;
+    group.votesScore += votesScore;
+    group.penaltyPoints += player.penaltyPoints || 0;
   }
+
+  const rankings = Array.from(groups.values()).map((group) => ({
+    ...group,
+    totalScore: group.completedPhotos + group.votesScore - group.penaltyPoints
+  }));
+
+  rankings.sort((a, b) => b.totalScore - a.totalScore);
+  return { rankings };
 }
 
-export function getGameStatusService() {
-  return gameStatus;
+export async function resetGame(gameId, adminToken) {
+  const game = requireGame(gameId);
+  assertAdmin(game, adminToken);
+  game.clearTimer();
+  game.players = [];
+  game.words = [];
+  game.time = 0;
+  game.endTime = null;
+  game.wordsPerPlayer = 9;
+  game.votesPerPlayer = 0;
+  game.removePoints = false;
+  changeGameStatus(game, GameStatus.NOT_STARTED);
+  await deleteImagesForGameService(game.id, projectRoot);
+  webSocketService.sendToGame(game.id, 'GAME_RESET', null);
 }
 
-export function getSendLink() {
-  if (sendResponse === "UPLOADING") {
-    console.log("[getSendLink] Status: UPLOADING");
-    return { success: false, error: "Uploading images..." };
-  } else if (sendResponse && sendResponse.success === true && sendResponse.uploadId) {
-    const sendURL = process.env.SEND_INSTANCE_URL || '';
-    const uploadId = sendResponse.uploadId;
-    const downloadLink = `${sendURL}/download/${uploadId}?p=GeoBingo`;
-    console.log("[getSendLink] Success:", { ...sendResponse, downloadLink });
-    return { ...sendResponse, downloadLink };
-  } else if (sendResponse && sendResponse.success === false) {
-    console.log("[getSendLink] Upload failed:", sendResponse);
-    return sendResponse;
-  } else {
-    console.log("[getSendLink] No upload response available.");
-    return { success: false, error: "No upload response available." };
+export async function intermissionOver(gameId, adminToken) {
+  const game = requireGame(gameId);
+  assertAdmin(game, adminToken);
+
+  if (game.status !== GameStatus.INTERMISSION) {
+    const error = new Error('Game is not in intermission');
+    error.status = 400;
+    throw error;
   }
+
+  changeGameStatus(game, GameStatus.REVIEW);
+  webSocketService.sendToGame(game.id, 'GAME_RELOAD', null);
 }
 
-export function getGameName() {
-  return gameName;
+export function changeGameStatus(game, status) {
+  game.status = status;
 }
-
-function generateGameName() {
-  const randomWords = wordlist.sort(() => Math.random() - 0.5);
-  return randomWords.slice(0, 3).join(" ");
-}
-
-const gameName = generateGameName();

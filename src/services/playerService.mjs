@@ -1,199 +1,89 @@
-import { game } from "../models/game.mjs";
-import { getWords } from "./wordService.mjs";
-import { player as PlayerModel } from "../models/player.mjs";
-import { word as WordModel } from "../models/word.mjs";
-import { getSendLink } from "./gameService.mjs";
-import { getGameStatusService } from './gameService.mjs';
 import { GameStatus } from '../enums/gameStatusEnum.mjs';
+import { Player } from '../models/player.mjs';
+import { requireGame } from './gameStore.mjs';
+import { buildWordsForPlayer } from './wordService.mjs';
+import { getAdminToken, fail, ok } from './httpHelpers.mjs';
 import webSocketService from './webSocketService.mjs';
 
-export async function addPlayer(playerName, team, votesPerPlayer) {
-  let player = Object.assign({}, PlayerModel);
-  var words = await getWords();
-
-  player.name = playerName;
-
-  if (team) {
-    player.team = team;
+function normalizeName(value, fieldName) {
+  const normalized = String(value || '').trim();
+  if (normalized.length < 1 || normalized.length > 20) {
+    const error = new Error(`${fieldName} must be between 1 and 20 characters`);
+    error.status = 400;
+    throw error;
   }
+  return normalized;
+}
 
-  if (votesPerPlayer) {
-    player.votes = votesPerPlayer;
+function optionalTeamName(value) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return '';
   }
-
-  player.words = words.map((word, index) => {
-    if (WordModel[index]) {
-      return { ...WordModel[index], Label: word, completed: false, photo: "", votes: 0 };
-    } else {
-      return { Label: word, completed: false, photo: "", votes: 0 };
-    }
-  });
-
-  if (game.players.length === 0) {
-    player.isAdmin = true;
+  if (normalized.length > 20) {
+    const error = new Error('Team name must be 20 characters or fewer');
+    error.status = 400;
+    throw error;
   }
-
-  game.players.push(player);
+  return normalized;
 }
 
-export function modifyPlayer(player) {
-  const idx = game.players.findIndex((p) => p.name == player.name);
-  if (idx !== -1) {
-    game.players[idx] = player;
-  }
-}
-
-export function getWordsFromPlayer(playerName) {
-  const foundPlayer = game.players.find((p) => p.name === playerName);
-  return foundPlayer ? foundPlayer.words : null;
-}
-
-export function CheckIfPlayerExists(player) {
-  return game.players.some((p) => p.name == player.name);
-}
-
-export function AddImageToPlayer(image, player, word) {
-  var targetPlayer = game.players.find(p => p.name == player);
-  if (targetPlayer) {
-    var targetWord = targetPlayer.words.find(w => w.Label === word);
-    if (targetWord) {
-      targetWord.photo = image;
-      targetWord.completed = true;
-    }
-  }
-}
-
-export function GetPlayers() {
-  if (!game.players || game.players.length === 0) {
-    return null;
-  }
-  return game.players.map(player => ({ name: player.name, team: player.team }));
-}
-
-export function GetFullPlayers() {
-  if (!game.players || game.players.length === 0) {
-    return null;
-  }
-  return game.players;
-}
-
-export function DeclinePhoto(playername, word) {
-  game.players.forEach((p) => {
-    if (p.name == playername) {
-      p.words.forEach((w) => {
-        if (w.Label == word) {
-          w.photo = null;
-          w.completed = false;
-        }
-      });
-    }
-  });
-}
-
-export function GetWinner() {
-  let rankList = [];
-  game.players.forEach((p) => {
-    if (!rankList.some((player) => player.player === p.name)) {
-      let completedPhotos = p.words.filter((w) => w.completed === true);
-      let votesScore = p.words.reduce((acc, word) => acc + word.votes, 0);
-      let totalScore = completedPhotos.length + votesScore;
-      rankList.push({
-        player: p.name,
-        completedPhotos: completedPhotos.length,
-        votesScore: votesScore,
-        totalScore: totalScore,
-        isTeam: p.team !== ""
-      });
-    }
-  });
-  rankList.sort((a, b) => b.totalScore - a.totalScore);
-  const sendLink = getSendLink();
+function publicPlayer(player) {
   return {
-    rankings: rankList,
-    sendData: sendLink
+    id: player.id,
+    name: player.name,
+    teamName: player.teamName,
+    isAdmin: player.isAdmin
   };
 }
 
-export function ResetPlayers() {
-  game.players = [];
-}
+export async function addPlayerService(req) {
+  try {
+    const game = requireGame(req.params.gameId);
 
-function PlayerHasEnoughVotes(playername) {
-  let player = game.players.find((p) => p.name === playername);
-  return player ? player.votes > 0 : false;
-}
-
-function removeVote(playername) {
-  let player = game.players.find((p) => p.name === playername);
-  if (player) {
-    player.votes -= 1;
-  }
-}
-
-export function VoteForPlayer(playername) {
-  if (PlayerHasEnoughVotes(playername)) {
-    removeVote(playername);
-    return true;
-  } else {
-    return false;
-  }
-}
-
-export function AddVoteToWord(word, playername, amount = 1) {
-  let player = game.players.find((p) => p.name === playername);
-  if (!player) return;
-  let targetWord = player.words.find((w) => w.Label === word);
-  if (!targetWord) return;
-  targetWord.votes += amount;
-}
-
-export function getVoteAmount(playername) {
-  let player = game.players.find((p) => p.name === playername);
-  return player ? player.votes : 0;
-}
-
-export function GetAllImages() {
-  let allImages = [];
-  game.players.forEach((p) => {
-    p.words.forEach((w) => {
-      if (w.photo) {
-        allImages.push({
-          player: p.name,
-          word: w.Label,
-          photo: w.photo
-        });
-      }
-    });
-  });
-  return allImages;
-}
-
-export async function addPlayerService(playerName, team, votesPerPlayer) {
-  // Allow joining only if game is NOT_STARTED or STARTING
-  if (![GameStatus.NOT_STARTED, GameStatus.STARTING].includes(getGameStatusService())) {
-    return { status: 400, data: { message: 'You cannot join the game at this time. Please wait for the game to start.' } };
-  }
-  let player = Object.assign({}, PlayerModel);
-  var words = await getWords();
-  player.name = playerName;
-  if (team) player.team = team;
-  if (votesPerPlayer) player.votes = votesPerPlayer;
-  player.words = words.map((word, index) => {
-    if (WordModel[index]) {
-      return { ...WordModel[index], Label: word, completed: false, photo: "", votes: 0 };
-    } else {
-      return { Label: word, completed: false, photo: "", votes: 0 };
+    if (![GameStatus.NOT_STARTED, GameStatus.STARTING].includes(game.status)) {
+      return fail(400, 'You cannot join the game at this time');
     }
-  });
-  if (game.players.length === 0) player.isAdmin = true;
-  game.players.push(player);
-  webSocketService.sendToAll('PLAYER_REFRESH', null);
-  return { status: 200, data: { admin: player.isAdmin } };
+
+    if (game.words.length === 0) {
+      return fail(400, 'The game has no prompts yet');
+    }
+
+    const name = normalizeName(req.body?.username, 'Username');
+    const teamName = optionalTeamName(req.body?.teamName);
+    const hasDuplicateName = game.players.some((player) => player.name.toLowerCase() === name.toLowerCase());
+
+    if (hasDuplicateName) {
+      return fail(409, 'Username is already taken in this game');
+    }
+
+    const player = new Player({
+      name,
+      teamName,
+      words: buildWordsForPlayer(game),
+      votes: game.votesPerPlayer,
+      isAdmin: game.isAdmin(getAdminToken(req))
+    });
+
+    game.players.push(player);
+    webSocketService.sendToGame(game.id, 'PLAYER_REFRESH', null);
+
+    return ok({
+      player: publicPlayer(player),
+      playerId: player.id,
+      playerToken: player.token,
+      admin: player.isAdmin
+    });
+  } catch (error) {
+    return fail(error.status || 500, error.message);
+  }
 }
 
-export function getPlayersService() {
-  if (!game.players || game.players.length === 0) {
-    return null;
+export function getPlayersService(req) {
+  try {
+    const game = requireGame(req.params.gameId);
+    return ok(game.players.map(publicPlayer));
+  } catch (error) {
+    return fail(error.status || 500, error.message);
   }
-  return game.players.map(player => ({ name: player.name, team: player.team }));
 }

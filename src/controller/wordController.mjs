@@ -9,29 +9,34 @@ import {
 
 const wordRouter = express.Router();
 
-wordRouter.post('/set', async (req, res) => {
+wordRouter.post('/:gameId/set', async (req, res) => {
   const result = await setWordsService(req);
-  res.status(result.status).json(result.data);
+  return res.status(result.status).json(result.data);
 });
 
-wordRouter.get('/player/:player', async (req, res) => {
+wordRouter.get('/:gameId/player/:playerId', async (req, res) => {
   const result = await getWordsForPlayerService(req);
-  res.status(result.status).json(result.data);
+  return res.status(result.status).json(result.data);
 });
 
-wordRouter.post('/vote', async (req, res) => {
+wordRouter.post('/:gameId/vote', async (req, res) => {
   const result = await voteForPlayerService(req);
-  res.status(result.status).json(result.data);
+  return res.status(result.status).json(result.data);
 });
 
-wordRouter.get('/votes/:player', async (req, res) => {
+wordRouter.get('/:gameId/votes/:playerId', async (req, res) => {
   const result = await getMyVotesService(req);
-  res.status(result.status).json(result.data);
+  return res.status(result.status).json(result.data);
 });
 
 wordRouter.get('/setup', async (req, res) => {
   const result = await getWordsForSetupService(req);
-  res.status(result.status).json(result.data);
+  return res.status(result.status).json(result.data);
+});
+
+wordRouter.get('/:gameId/setup', async (req, res) => {
+  const result = await getWordsForSetupService(req);
+  return res.status(result.status).json(result.data);
 });
 
 export default wordRouter;

@@ -1,50 +1,80 @@
 import express from 'express';
-import { 
-  startGame, 
-  confirmReview, 
-  getWinner, 
-  resetGame, 
-  intermissionOver, 
-  getGameStatusService 
+import {
+  createGameService,
+  startGame,
+  confirmReview,
+  getWinner,
+  resetGame,
+  intermissionOver,
+  getGameStatusService
 } from '../services/gameService.mjs';
+import { getAdminToken, handleServiceError } from '../services/httpHelpers.mjs';
 
 const gameRouter = express.Router();
 
-gameRouter.get('/status', async (req, res) => {
-  const status = await getGameStatusService();
-  return res.status(200).json({ status });
-});
+function sendResult(res, result) {
+  return res.status(result.status).json(result.data);
+}
 
-gameRouter.post('/start', async (req, res) => {
+gameRouter.post('/', async (req, res) => {
   try {
-    await startGame();
-    return res.status(200).json({ message: 'Game started' });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
+    const game = await createGameService(req.body, `${req.protocol}://${req.get('host')}`);
+    return res.status(201).json(game);
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
   }
 });
 
-gameRouter.post('/confirmReview', async (req, res) => {
-  await confirmReview();
-  return res.status(200).json({ message: 'Game ended' });
-});
-
-gameRouter.get('/winner', async (req, res) => {
-  const response = getWinner();
-  res.status(200).json(response);
-});
-
-gameRouter.post('/reset', async (req, res) => {
-  await resetGame();
-  return res.status(200).json({ message: 'Game reset' });
-});
-
-gameRouter.post('/intermissionOver', async (req, res) => {
+gameRouter.get('/:gameId/status', async (req, res) => {
   try {
-    await intermissionOver();
+    const status = await getGameStatusService(req.params.gameId);
+    return res.status(200).json({ status });
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
+  }
+});
+
+gameRouter.post('/:gameId/start', async (req, res) => {
+  try {
+    await startGame(req.params.gameId, getAdminToken(req));
+    return res.status(200).json({ message: 'Game started' });
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
+  }
+});
+
+gameRouter.post('/:gameId/confirmReview', async (req, res) => {
+  try {
+    await confirmReview(req.params.gameId, getAdminToken(req));
+    return res.status(200).json({ message: 'Game ended' });
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
+  }
+});
+
+gameRouter.get('/:gameId/winner', async (req, res) => {
+  try {
+    return res.status(200).json(getWinner(req.params.gameId));
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
+  }
+});
+
+gameRouter.post('/:gameId/reset', async (req, res) => {
+  try {
+    await resetGame(req.params.gameId, getAdminToken(req));
+    return res.status(200).json({ message: 'Game reset' });
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
+  }
+});
+
+gameRouter.post('/:gameId/intermissionOver', async (req, res) => {
+  try {
+    await intermissionOver(req.params.gameId, getAdminToken(req));
     return res.status(200).json({ message: 'Intermission over' });
-  } catch (err) {
-    return res.status(400).json({ message: err.message });
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
   }
 });
 

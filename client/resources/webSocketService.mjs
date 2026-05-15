@@ -1,5 +1,16 @@
+import { getGameId } from '/resources/gameContext.mjs';
+
+function defaultWebSocketUrl() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const apiPort = window.location.port;
+    const wsPort = apiPort === '8000' || apiPort === '' ? '8080' : apiPort;
+    const gameId = getGameId();
+    const query = gameId ? `?gameId=${encodeURIComponent(gameId)}` : '';
+    return `${protocol}//${window.location.hostname}:${wsPort}${query}`;
+}
+
 class WebSocketClient {
-    constructor(url = "ws://127.0.0.1:3001", reconnectInterval = 5000) {
+    constructor(url = defaultWebSocketUrl(), reconnectInterval = 5000) {
         this.url = url;
         this.reconnectInterval = reconnectInterval;
         this.eventHandlers = {};
@@ -23,12 +34,10 @@ class WebSocketClient {
         };
 
         this.ws.onclose = () => {
-            console.log('WebSocket connection closed. Reconnecting in', this.reconnectInterval / 1000, 'seconds');
             setTimeout(() => this.connect(), this.reconnectInterval);
         };
 
-        this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+        this.ws.onerror = () => {
             this.ws.close();
         };
     }
@@ -46,11 +55,13 @@ class WebSocketClient {
         this.eventHandlers[event].push(handler);
     }
 
+    sendEvent(event, data) {
+        this.sendMessage(JSON.stringify({ event, data }));
+    }
+
     sendMessage(message) {
         if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(message);
-        } else {
-            console.warn('WebSocket is not open. Cannot send message:', message);
         }
     }
 }

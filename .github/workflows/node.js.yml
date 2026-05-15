@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -26,6 +26,5 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm i
-#    - run: npm test
-# Will add tests later
+    - run: npm ci
+    - run: find src client \( -name "*.mjs" -o -name "*.js" \) -print0 | xargs -0 -I {} node --check {}

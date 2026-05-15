@@ -29,7 +29,7 @@ npm i
 
 After that make sure you edit the .env file. There is a .env.template. In this file you can configure on which ports the Server and Websocket run on.
 
-Like this its configured to run on your localhost. Then you just have to configure the Client to connect to the right WebSocket. Go to /client/resources/webSocketService.mjs. There you should see an IP adresse. Just change this to the same then you configured in the config.json
+Like this its configured to run on your localhost. The client derives the WebSocket host from the current page and scopes each connection to the game id in the URL.
 After that just run the project using
 
 ```
@@ -53,6 +53,10 @@ In GeoBingo you can set default words, which will be randomly choosen if you don
 - 🔎 As Admin remove pictures that do not follow the prompt.
 - 🔗 Compression Build in. Save Data when on the run
 - 💻 Good looking UI
+
+## Game URLs
+
+Opening `/` lets the game creator set prompts and create a new game. After creation the app redirects to `/g/<game-id>`. Share that URL or the QR code on the lobby screen with other players.
 
 ## Contributing
 

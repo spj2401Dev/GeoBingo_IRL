@@ -1,4 +1,6 @@
 import WebSocketClient from '/resources/webSocketService.mjs';
+import { getGameId, getPlayerSession, playerHeaders } from '/resources/gameContext.mjs';
+
 const wsClient = new WebSocketClient();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,62 +10,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initializeWebSocket() {
     wsClient.on('GAME_ENDED', () => window.location.reload());
-    wsClient.on('VOTES_UPDATED', () => loadPlayerData());
-    wsClient.on('WORDS_UPDATED', () => loadPlayerData());
     wsClient.on('PHOTO_DECLINED', () => loadPlayerData());
+    wsClient.on('PHOTO_UPDATED', () => loadPlayerData());
 }
 
 async function loadPlayerData() {
     try {
-        var player = await localStorage.getItem('username');
-        const response = await fetch('/word/player/' + player);
-        const data = await response.json();
+        const player = getPlayerSession();
+        if (!player) {
+            window.location.reload();
+            return;
+        }
 
-        data.words.sort((a, b) => a.completed - b.completed);
+        const gameId = getGameId();
+        const response = await fetch(`/word/${encodeURIComponent(gameId)}/player/${encodeURIComponent(player.id)}`, {
+            headers: playerHeaders()
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch prompts');
+        }
+
+        const data = await response.json();
+        data.words.sort((a, b) => Number(a.completed) - Number(b.completed));
 
         renderPlayerList(data.words);
         updateProgress(data.words);
-        RenderTime(data.time);
+        renderTime(data.time);
     } catch (error) {
         console.error('Error fetching data:', error);
     }
 }
 
-function renderPlayerList(players) {
+function renderPlayerList(words) {
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = '';
-    players.forEach(player => {
-        const div = createPlayerItem(player);
+    words.forEach(word => {
+        const div = createPlayerItem(word);
         playerList.appendChild(div);
     });
 }
 
 function updateProgress(data) {
     const progressText = document.getElementById('progress');
-    const completed = data.filter(player => player.completed).length;
+    const completed = data.filter(word => word.completed).length;
     const total = data.length;
     progressText.textContent = `Progress: ${completed}/${total} completed`;
 }
 
-function createPlayerItem(player) {
+function createPlayerItem(word) {
     const div = document.createElement('div');
     div.classList.add('block', 'card');
 
     const h3 = document.createElement('h3');
-    h3.textContent = player.Label;
+    h3.textContent = word.label;
 
     const p = document.createElement('p');
-    p.textContent = player.completed ? '✔ Completed' : 'Not completed yet';
+    p.textContent = word.completed ? '✔ Completed' : 'Not completed yet';
 
     div.appendChild(h3);
     div.appendChild(p);
 
-    div.addEventListener('click', () => handleFileUpload(player));
+    div.addEventListener('click', () => handleFileUpload(word));
 
     return div;
 }
 
-function handleFileUpload(player) {
+function handleFileUpload(word) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -73,24 +86,29 @@ function handleFileUpload(player) {
         if (!file) return;
 
         const downscaledImage = await downscaleImage(file, 1920, 1080);
-
-        var username = await localStorage.getItem('username');
+        const player = getPlayerSession();
         const formData = new FormData();
         formData.append('file', downscaledImage);
-        formData.append('playername', username);
-        formData.append('word', player.Label);
+        formData.append('playerId', player.id);
+        formData.append('wordId', word.id);
 
         try {
-            const response = await fetch('/photo', {
+            const gameId = getGameId();
+            const response = await fetch(`/photo/${encodeURIComponent(gameId)}`, {
                 method: 'POST',
                 body: formData,
-                headers: {
+                headers: playerHeaders({
                     'Accept': 'application/json',
-                }
+                })
             });
-            const data = await response.json();
+
+            if (!response.ok) {
+                const data = await response.json().catch(() => ({}));
+                alert(data.message || 'Error uploading file');
+                return;
+            }
+
             await loadPlayerData();
-            await wsClient.sendMessage(username); // If you name yourself "End" you will end the game. Please don't do that.
         } catch (error) {
             console.error('Error uploading file:', error);
         }
@@ -136,7 +154,7 @@ async function downscaleImage(file, maxWidth, maxHeight) {
     });
 }
 
-function RenderTime(endDate) {
+function renderTime(endDate) {
     const timeText = document.getElementById('time');
     const endTime = new Date(endDate).getTime();
     let timerInterval;

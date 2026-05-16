@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { GameStatus } from '../enums/gameStatusEnum.mjs';
+import { GameMode } from '../enums/gameModeEnum.mjs';
 
 function createGameId() {
     return crypto.randomBytes(4).toString('hex');
@@ -17,7 +18,10 @@ export class Game {
         this.wordsPerPlayer = 9;
         this.votesPerPlayer = 0;
         this.removePoints = false;
+        this.allowSkip = false;
         this.timer = null;
+        this.gameMode = GameMode.INDIVIDUAL;
+        this.modeState = {};
     }
 
     isAdmin(token) {

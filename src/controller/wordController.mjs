@@ -4,7 +4,9 @@ import {
   getWordsForPlayerService,
   voteForPlayerService,
   getMyVotesService,
-  getWordsForSetupService
+  getWordsForSetupService,
+  chooseBountyPromptService,
+  skipBountyService
 } from '../services/wordService.mjs';
 
 const wordRouter = express.Router();
@@ -21,6 +23,16 @@ wordRouter.get('/:gameId/player/:playerId', async (req, res) => {
 
 wordRouter.post('/:gameId/vote', async (req, res) => {
   const result = await voteForPlayerService(req);
+  return res.status(result.status).json(result.data);
+});
+
+wordRouter.post('/:gameId/bounty/select', async (req, res) => {
+  const result = await chooseBountyPromptService(req);
+  return res.status(result.status).json(result.data);
+});
+
+wordRouter.post('/:gameId/bounty/skip', async (req, res) => {
+  const result = await skipBountyService(req);
   return res.status(result.status).json(result.data);
 });
 

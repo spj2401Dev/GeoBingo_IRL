@@ -7,10 +7,13 @@ import {
   playerHeaders,
   storageKey
 } from '/resources/gameContext.mjs';
+import { FrontendGameMode, normalizeGameMode } from '/resources/gamemodes/modes.mjs';
 
 let latestPhotoRenderRequest = 0;
+let currentGameMode = FrontendGameMode.INDIVIDUAL;
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+  await initializeGameMode();
   fetchPhotos();
   initializeWebSocket();
   localStorage.removeItem(storageKey('chatMessages'));
@@ -19,7 +22,8 @@ document.addEventListener('DOMContentLoaded', function () {
 async function fetchPhotos() {
   const requestId = ++latestPhotoRenderRequest;
   try {
-    const [data, votesLeft] = await Promise.all([getAllPhotos(), getUserVotes()]);
+    const data = await getAllPhotos();
+    const votesLeft = currentGameMode === FrontendGameMode.BOUNTY_HUNT ? 0 : await getUserVotes();
 
     if (requestId !== latestPhotoRenderRequest) {
       return;
@@ -35,8 +39,27 @@ function initializeWebSocket() {
   const wsClient = new WebSocketClient();
   wsClient.on('PHOTO_DECLINED', fetchPhotos);
   wsClient.on('PHOTO_UPDATED', fetchPhotos);
-  wsClient.on('VOTES_UPDATED', fetchPhotos);
+  if (currentGameMode !== FrontendGameMode.BOUNTY_HUNT) {
+    wsClient.on('VOTES_UPDATED', fetchPhotos);
+  }
   wsClient.on('GAME_WIN', () => window.location.reload());
+}
+
+async function initializeGameMode() {
+  try {
+    const gameId = getGameId();
+    const response = await fetch(`/game/${encodeURIComponent(gameId)}/info`);
+    if (!response.ok) {
+      return;
+    }
+    const data = await response.json();
+    currentGameMode = normalizeGameMode(data.gameMode, FrontendGameMode.INDIVIDUAL);
+    const hideVoting = currentGameMode === FrontendGameMode.BOUNTY_HUNT;
+    document.getElementById('votes-info-block').style.display = hideVoting ? 'none' : 'block';
+    document.getElementById('votes-left-block').style.display = hideVoting ? 'none' : 'block';
+  } catch (error) {
+    console.error('Failed to initialize game mode:', error);
+  }
 }
 
 async function getAllPhotos() {
@@ -105,7 +128,7 @@ function createPhotoBlock(photo, canAdmin, votesLeft) {
   const samePlayer = currentPlayer?.id === photo.playerId;
   const sameTeam = currentPlayer?.teamName && currentPlayer.teamName === photo.teamName;
 
-  if (currentPlayer && !samePlayer && !sameTeam) {
+  if (currentGameMode !== FrontendGameMode.BOUNTY_HUNT && currentPlayer && !samePlayer && !sameTeam) {
     if (votesLeft > 0) {
       const votingDiv = document.createElement('div');
       votingDiv.className = 'voting';

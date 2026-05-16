@@ -1,7 +1,9 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GameStatus } from '../enums/gameStatusEnum.mjs';
+import { GameMode } from '../enums/gameModeEnum.mjs';
 import { createGame, requireGame, serializeGame } from './gameStore.mjs';
+import { getGameModeAdapter } from './gamemodeService.mjs';
 import { setGameWordsFromPayload } from './wordService.mjs';
 import { deleteImagesForGameService } from './deleteImagesService.mjs';
 import webSocketService from './webSocketService.mjs';
@@ -27,6 +29,10 @@ export function getGameStatusService(gameId) {
   return requireGame(gameId).status;
 }
 
+export function getGameInfoService(gameId) {
+  return serializeGame(requireGame(gameId));
+}
+
 export function assertAdmin(game, token) {
   if (!game.isAdmin(token)) {
     const error = new Error('Only the game creator can do this');
@@ -38,6 +44,7 @@ export function assertAdmin(game, token) {
 export async function startGame(gameId, adminToken) {
   const game = requireGame(gameId);
   assertAdmin(game, adminToken);
+  const gameModeAdapter = getGameModeAdapter(game);
 
   if (game.status !== GameStatus.STARTING) {
     const error = new Error('Game can only be started from the lobby');
@@ -61,6 +68,9 @@ export async function startGame(gameId, adminToken) {
   const endTime = new Date();
   endTime.setMinutes(endTime.getMinutes() + time);
   game.endTime = endTime;
+  if (gameModeAdapter.onGameStarted) {
+    gameModeAdapter.onGameStarted(game);
+  }
   changeGameStatus(game, GameStatus.RUNNING);
   webSocketService.sendToGame(game.id, 'GAME_STARTED', null);
 
@@ -88,6 +98,12 @@ export async function confirmReview(gameId, adminToken) {
 
 export function getWinner(gameId) {
   const game = requireGame(gameId);
+  const gameModeAdapter = getGameModeAdapter(game);
+
+  if (gameModeAdapter.buildRankings) {
+    return { rankings: gameModeAdapter.buildRankings(game) };
+  }
+
   const groups = new Map();
 
   for (const player of game.players) {
@@ -109,7 +125,7 @@ export function getWinner(gameId) {
     }
 
     const group = groups.get(key);
-    const completedPhotos = player.words.filter((word) => word.completed).length;
+    const completedPhotos = gameModeAdapter.getCompletedPhotosForPlayer(player, game);
     const votesScore = player.words.reduce((acc, word) => acc + word.votes, 0);
 
     group.members.push(player.name);
@@ -130,6 +146,10 @@ export function getWinner(gameId) {
 export async function resetGame(gameId, adminToken) {
   const game = requireGame(gameId);
   assertAdmin(game, adminToken);
+  const gameModeAdapter = getGameModeAdapter(game);
+  if (gameModeAdapter.clearModeState) {
+    gameModeAdapter.clearModeState(game);
+  }
   game.clearTimer();
   game.players = [];
   game.words = [];
@@ -138,6 +158,9 @@ export async function resetGame(gameId, adminToken) {
   game.wordsPerPlayer = 9;
   game.votesPerPlayer = 0;
   game.removePoints = false;
+  game.allowSkip = false;
+  game.gameMode = GameMode.INDIVIDUAL;
+  game.modeState = {};
   changeGameStatus(game, GameStatus.NOT_STARTED);
   await deleteImagesForGameService(game.id, projectRoot);
   webSocketService.sendToGame(game.id, 'GAME_RESET', null);

@@ -9,6 +9,7 @@ export class BingoWord {
         this.photoPath = null;
         this.photoOrder = Math.random();
         this.votes = 0;
+        this.completedByPlayerId = null;
     }
 }
 
@@ -19,5 +20,6 @@ export const word = {
     photo: null,
     photoPath: null,
     photoOrder: 0,
-    votes: 0
+    votes: 0,
+    completedByPlayerId: null
 };

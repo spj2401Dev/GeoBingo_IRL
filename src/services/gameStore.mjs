@@ -34,6 +34,8 @@ export function serializeGame(game) {
         wordsPerPlayer: game.wordsPerPlayer,
         votesPerPlayer: game.votesPerPlayer,
         removePoints: game.removePoints,
+        allowSkip: game.allowSkip,
+        gameMode: game.gameMode,
         playerCount: game.players.length
     };
 }

@@ -134,3 +134,49 @@ input[type=checkbox]:checked {
     display: flex;
     align-items: center;
 }
+
+.mode-tabs-label {
+    margin-bottom: 10px;
+}
+
+.mode-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mode-tab {
+    height: 39px;
+    border: 1px solid rgb(135, 135, 155);
+    background-color: transparent;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Nunito', sans-serif !important;
+    padding: 0 14px;
+    transition: all 0.2s;
+}
+
+.mode-tab:hover {
+    border-radius: 1px;
+    transition: all 0.2s;
+}
+
+.mode-tab-active {
+    border-color: #4444c9;
+    background-color: #2f2f35;
+}
+
+.prompt-completed-cross {
+    text-decoration: line-through;
+    opacity: 0.75;
+}
+
+.word-item-disabled {
+    opacity: 0.8;
+    cursor: default;
+}
+
+#bounty-candidates {
+    display: flex;
+    flex-direction: column;
+}

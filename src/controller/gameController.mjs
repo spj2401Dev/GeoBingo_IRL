@@ -6,7 +6,8 @@ import {
   getWinner,
   resetGame,
   intermissionOver,
-  getGameStatusService
+  getGameStatusService,
+  getGameInfoService
 } from '../services/gameService.mjs';
 import { getAdminToken, handleServiceError } from '../services/httpHelpers.mjs';
 
@@ -29,6 +30,15 @@ gameRouter.get('/:gameId/status', async (req, res) => {
   try {
     const status = await getGameStatusService(req.params.gameId);
     return res.status(200).json({ status });
+  } catch (error) {
+    return sendResult(res, handleServiceError(error));
+  }
+});
+
+gameRouter.get('/:gameId/info', async (req, res) => {
+  try {
+    const game = await getGameInfoService(req.params.gameId);
+    return res.status(200).json(game);
   } catch (error) {
     return sendResult(res, handleServiceError(error));
   }

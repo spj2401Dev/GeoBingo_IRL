@@ -51,8 +51,25 @@ In GeoBingo you can set default words, which will be randomly choosen if you don
 - 🤝 Teams are supported. Play with multiple people together
 - 📝 Voting. Give extra points to the best photos.
 - 🔎 As Admin remove pictures that do not follow the prompt.
+- 🎮 Multiple gamemodes (individual, shared_locked, bounty_hunt).
 - 🔗 Compression Build in. Save Data when on the run
 - 💻 Good looking UI
+
+## Gamemodes
+
+When creating or updating a game (`POST /game` or `POST /word/:gameId/set`), you can pass `gameMode`:
+
+- `individual` (default): each player gets their own random prompt set.
+- `shared_locked`: all players get the same prompts, and once any player completes a prompt, nobody can upload that prompt again. Completed prompts also cannot be replaced/reuploaded.
+- `bounty_hunt`: only one active prompt is live at a time. First valid upload claims it for +1 point and triggers a 3-choice race to pick the next prompt (10s timeout with random fallback). Voting is disabled in this mode.
+
+`bounty_hunt` optional setting:
+- `allowSkip` (boolean): allows a player to skip the active bounty by paying 1 point. In team games, this uses a shared team score pool.
+
+Frontend behavior:
+- On the create page, gamemode is selected via tabs. In `shared_locked` (VS mode), prompt count is shown as **Total Prompts** and defaults to **12**.
+- In `bounty_hunt`, voting setup is hidden and an optional skip toggle is shown.
+- On the camera page, progress is shown as **Words left** for classic modes, while bounty mode shows active bounty state, next-prompt selection, and skip controls.
 
 ## Game URLs
 

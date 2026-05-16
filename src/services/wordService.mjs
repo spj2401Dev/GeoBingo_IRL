@@ -1,7 +1,15 @@
 import { wordlist } from '../utility/wordsList.mjs';
+import { GameMode } from '../enums/gameModeEnum.mjs';
 import { GameStatus } from '../enums/gameStatusEnum.mjs';
-import { BingoWord } from '../models/word.mjs';
 import { requireGame, serializeGame } from './gameStore.mjs';
+import {
+  parseGameMode,
+  getGameModeAdapter,
+  getVisibleWordsForPlayer,
+  getModeStateForPlayer,
+  chooseBountyPrompt,
+  skipBounty
+} from './gamemodeService.mjs';
 import { getAdminToken, getPlayerId, getPlayerToken, fail, ok } from './httpHelpers.mjs';
 import webSocketService from './webSocketService.mjs';
 
@@ -43,8 +51,11 @@ export async function setGameWordsFromPayload(game, payload, { requireNotRunning
   const providedWords = sanitizeWordList(payload?.words);
   const wordsPerPlayer = parsePositiveInt(payload?.wordsPerPlayer, defaultWordsPerPlayer, { min: 1, max: 99 });
   const time = parsePositiveInt(payload?.time, wordsPerPlayer * 5, { min: 1, max: 1000 });
-  const votesPerPlayer = parsePositiveInt(payload?.votesPerPlayer, 0, { min: 0, max: 1000 });
+  const parsedVotesPerPlayer = parsePositiveInt(payload?.votesPerPlayer, 0, { min: 0, max: 1000 });
   const removePoints = Boolean(payload?.penalty);
+  const gameMode = parseGameMode(payload?.gameMode, { fallback: game.gameMode });
+  const votesPerPlayer = gameMode === GameMode.BOUNTY_HUNT ? 0 : parsedVotesPerPlayer;
+  const allowSkip = gameMode === GameMode.BOUNTY_HUNT ? Boolean(payload?.allowSkip) : false;
 
   if (providedWords.length + wordlist.length < wordsPerPlayer) {
     const error = new Error('Not enough words provided');
@@ -60,6 +71,9 @@ export async function setGameWordsFromPayload(game, payload, { requireNotRunning
   game.time = time;
   game.votesPerPlayer = votesPerPlayer;
   game.removePoints = removePoints;
+  game.allowSkip = allowSkip;
+  game.gameMode = gameMode;
+  game.modeState = {};
   game.status = GameStatus.STARTING;
   defaultWordsPerPlayer = wordsPerPlayer;
 }
@@ -89,7 +103,8 @@ function serializeWord(word) {
     completed: word.completed,
     photo: word.photo,
     photoPath: word.photoPath,
-    votes: word.votes
+    votes: word.votes,
+    completedByPlayerId: word.completedByPlayerId
   };
 }
 
@@ -107,14 +122,16 @@ export async function getWordsForPlayerService(req) {
       return fail(403, 'You can only view your own prompts');
     }
 
-    return ok({ words: player.words.map(serializeWord), time: game.endTime });
+    const words = getVisibleWordsForPlayer(game, player);
+    const modeState = getModeStateForPlayer(game, player);
+    return ok({ words: words.map(serializeWord), time: game.endTime, gameMode: game.gameMode, bounty: modeState });
   } catch (error) {
     return fail(error.status || 500, error.message);
   }
 }
 
 export function buildWordsForPlayer(game) {
-  return getWords(game.wordsPerPlayer, game.words).map((label) => new BingoWord(label));
+  return getGameModeAdapter(game).createWordsForPlayer(game);
 }
 
 function findPlayer(game, playerId) {
@@ -132,6 +149,9 @@ function findPlayerByToken(game, playerId, token) {
 export async function voteForPlayerService(req) {
   try {
     const game = requireGame(req.params.gameId);
+    if (game.gameMode === GameMode.BOUNTY_HUNT) {
+      return fail(400, 'Voting is not available in Bounty Hunt mode');
+    }
 
     if (game.status !== GameStatus.REVIEW) {
       return fail(400, 'Voting is only allowed during review');
@@ -178,6 +198,9 @@ export async function voteForPlayerService(req) {
 export async function getMyVotesService(req) {
   try {
     const game = requireGame(req.params.gameId);
+    if (game.gameMode === GameMode.BOUNTY_HUNT) {
+      return ok({ votes: 0 });
+    }
     const player = findPlayer(game, req.params.playerId);
 
     if (!player) {
@@ -200,6 +223,46 @@ export async function getWordsForSetupService(req) {
     const sourceList = req.params.gameId ? requireGame(req.params.gameId).words : wordlist;
     const words = getWords(amount, sourceList.length > 0 ? sourceList : wordlist);
     return ok({ words });
+  } catch (error) {
+    return fail(error.status || 500, error.message);
+  }
+}
+
+export async function chooseBountyPromptService(req) {
+  try {
+    const game = requireGame(req.params.gameId);
+
+    if (game.status !== GameStatus.RUNNING) {
+      return fail(400, 'Bounty selection is only available while the game is running');
+    }
+
+    const player = findPlayerByToken(game, getPlayerId(req), getPlayerToken(req));
+    if (!player) {
+      return fail(403, 'Invalid player token');
+    }
+
+    const result = chooseBountyPrompt(game, player, req.body?.label);
+    return ok({ message: 'Next bounty selected', ...result });
+  } catch (error) {
+    return fail(error.status || 500, error.message);
+  }
+}
+
+export async function skipBountyService(req) {
+  try {
+    const game = requireGame(req.params.gameId);
+
+    if (game.status !== GameStatus.RUNNING) {
+      return fail(400, 'Skipping is only available while the game is running');
+    }
+
+    const player = findPlayerByToken(game, getPlayerId(req), getPlayerToken(req));
+    if (!player) {
+      return fail(403, 'Invalid player token');
+    }
+
+    const result = skipBounty(game, player);
+    return ok({ message: 'Bounty skipped', ...result });
   } catch (error) {
     return fail(error.status || 500, error.message);
   }

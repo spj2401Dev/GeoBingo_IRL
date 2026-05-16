@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GameStatus } from '../enums/gameStatusEnum.mjs';
 import { requireGame } from './gameStore.mjs';
+import { getGameModeAdapter } from './gamemodeService.mjs';
 import { getAdminToken, getPlayerId, getPlayerToken, fail, ok } from './httpHelpers.mjs';
 import webSocketService from './webSocketService.mjs';
 
@@ -94,6 +95,9 @@ export async function postPhotoService(req) {
       return fail(404, 'Prompt not found for player');
     }
 
+    const gameModeAdapter = getGameModeAdapter(game);
+    gameModeAdapter.assertCanUploadPhoto(game, player, targetWord);
+
     const gamePhotoDir = path.join(photosRoot, game.id);
     await fs.mkdir(gamePhotoDir, { recursive: true });
 
@@ -109,6 +113,7 @@ export async function postPhotoService(req) {
     targetWord.photoPath = `/photos/${encodeURIComponent(game.id)}/${encodeURIComponent(filename)}`;
     targetWord.photoOrder = Math.random();
     targetWord.completed = true;
+    gameModeAdapter.onPhotoUploaded(game, player, targetWord);
 
     webSocketService.sendToGame(game.id, 'PHOTO_UPDATED', {
       playerId: player.id,
@@ -191,8 +196,16 @@ export async function declinePhotoService(req) {
     word.photoPath = null;
     word.completed = false;
     word.votes = 0;
+    word.completedByPlayerId = null;
 
-    if (game.removePoints) {
+    const gameModeAdapter = getGameModeAdapter(game);
+    gameModeAdapter.onPhotoDeclined(game, player, word);
+
+    const penaltyHandled = gameModeAdapter.applyDeclinePenalty
+      ? gameModeAdapter.applyDeclinePenalty(game, player, word, game.removePoints)
+      : false;
+
+    if (!penaltyHandled && game.removePoints) {
       player.penaltyPoints += 1;
     }
 
